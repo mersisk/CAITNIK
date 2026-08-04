@@ -14,6 +14,7 @@ export const project = {
   form: {
     title: "Оставьте заявку на оформление",
     note: "Расскажите о празднике, а менеджер свяжется с вами для уточнения деталей.",
+    submitLabel: "Отправить заявку",
     successLocal: "Заявка сохранена на этом устройстве. Менеджер свяжется с вами для уточнения деталей.",
     successRemote: "Заявка отправлена. Менеджер скоро свяжется с вами.",
   },
@@ -41,6 +42,42 @@ export const project = {
       title: "Юбилей",
       text: "Статусное оформление зала, welcome-зоны и праздничного стола для важной даты.",
       image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "graduation",
+      title: "Выпускной",
+      text: "Фотозоны и оформление зала для школьного или студенческого выпускного.",
+      image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "first-birthday",
+      title: "Годовасие",
+      text: "Нежное оформление первого дня рождения с фотозоной и семейными деталями.",
+      image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "maternity",
+      title: "Выписка из роддома",
+      text: "Тёплая встреча малыша: шары, надписи и декор для первых семейных фотографий.",
+      image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "romantic",
+      title: "Романтический вечер",
+      text: "Камерное оформление с цветами, свечами и светом для особенного вечера.",
+      image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "proposal",
+      title: "Предложение руки и сердца",
+      text: "Декорации для важного вопроса: цветы, свет, надписи и место для фотографий.",
+      image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "corporate",
+      title: "Событие для компании",
+      text: "Оформление в цветах бренда, фотозоны, welcome-зоны и декор площадки.",
+      image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=1200&q=80",
     },
   ],
   packages: [
@@ -139,6 +176,36 @@ export const project = {
       price: "от 50 000 ₽",
       includes: "Фотозона, декор стола виновника торжества и композиции на гостевые столы.",
       image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      id: "graduation-photo", eventId: "graduation", name: "Выпускной с фотозоной", price: "от 25 000 ₽",
+      includes: "Фотозона, год выпуска, декор в цветах класса и монтаж.",
+      image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      id: "first-birthday-photo", eventId: "first-birthday", name: "Первый день рождения", price: "от 18 000 ₽",
+      includes: "Фотозона, цифра, имя ребёнка, шары и монтаж.",
+      image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      id: "maternity-welcome", eventId: "maternity", name: "Встреча малыша", price: "от 10 000 ₽",
+      includes: "Композиции из шаров, имя малыша, декор встречи и доставка.",
+      image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      id: "romantic-evening", eventId: "romantic", name: "Романтический вечер", price: "от 20 000 ₽",
+      includes: "Цветы, свечи, текстиль, свет и оформление выбранного места.",
+      image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      id: "proposal-decor", eventId: "proposal", name: "Особенное предложение", price: "от 30 000 ₽",
+      includes: "Фотозона, цветы, свечи, надпись и монтаж.",
+      image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      id: "corporate-zone", eventId: "corporate", name: "Брендированная зона", price: "от 35 000 ₽",
+      includes: "Фотозона, цвета и логотип компании, welcome-детали и монтаж.",
+      image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=80",
     },
   ],
 };
@@ -269,3 +336,48 @@ export const packageDetails = {
     ],
   },
 };
+
+Object.assign(packageDetails, {
+  "graduation-photo": {
+    heading: "Оформление выпускного", description: "Фотозона и памятные детали для выпускников, учителей и родителей.", gallery,
+    variants: [
+      { id: "graduation-photo-start", name: "Выпускной Start", price: "от 25 000 ₽", includes: "Фотозона, год выпуска, надпись и монтаж." },
+      { id: "graduation-photo-plus", name: "Выпускной Plus", price: "от 40 000 ₽", includes: "Объёмная фотозона, декор входа, свет и монтаж." },
+    ],
+  },
+  "first-birthday-photo": {
+    heading: "Годовасие", description: "Семейная фотозона для первого дня рождения малыша.", gallery,
+    variants: [
+      { id: "first-birthday-start", name: "Первый праздник", price: "от 18 000 ₽", includes: "Фон, цифра, имя и композиция из шаров." },
+      { id: "first-birthday-plus", name: "Годовасие Plus", price: "от 30 000 ₽", includes: "Объёмный фон, тумбы, декор стола и монтаж." },
+    ],
+  },
+  "maternity-welcome": {
+    heading: "Выписка из роддома", description: "Декор для встречи малыша дома или у роддома.", gallery,
+    variants: [
+      { id: "maternity-start", name: "Добро пожаловать", price: "от 10 000 ₽", includes: "Шары, имя малыша и композиция для встречи." },
+      { id: "maternity-plus", name: "Первая встреча Plus", price: "от 18 000 ₽", includes: "Фотозона, шары, имя и декор дома." },
+    ],
+  },
+  "romantic-evening": {
+    heading: "Романтический вечер", description: "Камерная атмосфера с цветами, свечами и мягким светом.", gallery,
+    variants: [
+      { id: "romantic-start", name: "Вечер для двоих", price: "от 20 000 ₽", includes: "Свечи, цветы, текстиль и сервировка." },
+      { id: "romantic-plus", name: "Романтический вечер Plus", price: "от 35 000 ₽", includes: "Полное оформление зоны, свет, цветы и монтаж." },
+    ],
+  },
+  "proposal-decor": {
+    heading: "Предложение руки и сердца", description: "Оформление момента, который хочется запомнить навсегда.", gallery,
+    variants: [
+      { id: "proposal-start", name: "Главный вопрос", price: "от 30 000 ₽", includes: "Надпись, свечи, цветы и место для фотографий." },
+      { id: "proposal-plus", name: "Особенный момент Plus", price: "от 50 000 ₽", includes: "Авторская зона, свет, цветы и полный монтаж." },
+    ],
+  },
+  "corporate-zone": {
+    heading: "Событие для компании", description: "Брендированное оформление для гостей, команды и партнёров.", gallery,
+    variants: [
+      { id: "corporate-start", name: "Бренд-зона Start", price: "от 35 000 ₽", includes: "Фотозона, логотип, цвета бренда и монтаж." },
+      { id: "corporate-plus", name: "Корпоративное событие Plus", price: "от 65 000 ₽", includes: "Welcome-зона, фотозона, свет и декор площадки." },
+    ],
+  },
+});

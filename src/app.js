@@ -14,7 +14,34 @@ import {
 } from "./ui.js";
 import { renderStyleguide } from "./styleguide.js";
 
-const cart = [];
+const CART_KEY = "art_deco_cart_v1";
+const SUCCESS_KEY = "art_deco_show_success_v1";
+
+function readCart() {
+  try {
+    const value = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+const cart = readCart();
+
+function saveCart() {
+  try {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    return true;
+  } catch {
+    setNotice("Не удалось сохранить подборку на этом устройстве.", "error");
+    return false;
+  }
+}
+
+function clearCart() {
+  cart.length = 0;
+  return saveCart();
+}
 
 const nav = (active) => [
   { href: "#/", label: "Главная", active: active === "/" },
@@ -46,6 +73,10 @@ function addToCart(item) {
     return false;
   }
   cart.push(item);
+  if (!saveCart()) {
+    cart.pop();
+    return false;
+  }
   setNotice("Вариант добавлен в подборку.");
   return true;
 }
@@ -91,6 +122,8 @@ function cartSummary() {
 }
 
 function renderHome() {
+  const showSuccess = sessionStorage.getItem(SUCCESS_KEY) === "1";
+  if (showSuccess) sessionStorage.removeItem(SUCCESS_KEY);
   renderShell({
     title: `${project.name} — ${project.title}`,
     nav: [...nav("/"), { href: "#/styleguide", label: "Стиль", active: false }],
@@ -149,60 +182,112 @@ function renderHome() {
           </div>
           <form id="lead-form" class="panel stack" novalidate>
             <label>
-              Имя
-              <input name="name" autocomplete="name" maxlength="80" required>
-              <span class="help">Как к тебе обращаться.</span>
+              ФИО
+              <input name="name" autocomplete="name" maxlength="120" required>
+              <span class="help">Как к вам обращаться.</span>
             </label>
             <label>
-              Контакт для связи
-              <input name="contact" autocomplete="email" maxlength="120" required>
-              <span class="help">Телефон, почта или Telegram.</span>
+              Номер телефона
+              <input name="contact" type="tel" autocomplete="tel" maxlength="30" required>
             </label>
             <label>
-              Какой праздник вы планируете
-              <textarea name="problem" maxlength="1200" required></textarea>
+              Дата события
+              <input name="eventDate" type="date" required>
+            </label>
+            <label>
+              Город
+              <input name="city" autocomplete="address-level2" maxlength="100" required>
+            </label>
+            <label>
+              Место проведения
+              <input name="venue" autocomplete="street-address" maxlength="200" required>
+            </label>
+            <label>
+              Где вам удобнее ответить
+              <select name="messenger" required>
+                <option value="">Выберите мессенджер</option>
+                <option value="MAX">MAX</option>
+                <option value="Telegram">Telegram</option>
+                <option value="WhatsApp">WhatsApp</option>
+              </select>
+            </label>
+            <label>
+              Пожелания <span class="muted">(необязательно)</span>
+              <textarea name="details" maxlength="1200" placeholder="Например: сколько будет гостей? Какая цветовая гамма нравится? Есть ли особенности площадки?"></textarea>
+              <span class="help">Можно указать число гостей, любимые цвета и важные детали праздника.</span>
             </label>
             <p id="form-error" class="field-error" hidden></p>
-            <button class="button" type="submit">${escapeHtml(project.cta)}</button>
+            <button class="button" type="submit">${escapeHtml(project.form.submitLabel)}</button>
           </form>
         </div>
       </section>
+      ${showSuccess ? `
+        <div class="modal-backdrop" role="presentation">
+          <section class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-title">
+            <button id="success-modal-close" class="modal-close" type="button" aria-label="Закрыть окно">×</button>
+            <p class="eyebrow">Заявка принята</p>
+            <h2 id="success-title">Спасибо за оформление заказа!</h2>
+            <p>Мы скоро свяжемся с вами, чтобы уточнить детали.</p>
+            <button id="success-modal-ok" class="button" type="button">Хорошо</button>
+          </section>
+        </div>
+      ` : ""}
     `,
   });
 
+  const closeSuccess = () => qs(".modal-backdrop")?.remove();
+  qs("#success-modal-close")?.addEventListener("click", closeSuccess);
+  qs("#success-modal-ok")?.addEventListener("click", closeSuccess);
+
+  let submitting = false;
+  const submissionId = crypto.randomUUID();
   qs("#lead-form").addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (submitting) return;
     const form = event.currentTarget;
     const data = new FormData(form);
     const selectedNames = cart.map((item) => item.name).join(", ");
+    const details = String(data.get("details") || "").trim();
     const payload = {
+      submissionId,
       name: String(data.get("name") || "").trim(),
       contact: String(data.get("contact") || "").trim(),
-      problem: `${selectedNames ? `Выбрано: ${selectedNames}. ` : ""}${String(data.get("problem") || "").trim()}`,
+      eventDate: String(data.get("eventDate") || ""),
+      city: String(data.get("city") || "").trim(),
+      venue: String(data.get("venue") || "").trim(),
+      messenger: String(data.get("messenger") || ""),
+      details,
+      selectedVariants: cart.map((item) => ({ id: item.id, name: item.name, price: item.price })),
+      problem: `${selectedNames ? `Выбрано: ${selectedNames}. ` : ""}${details}`.trim(),
     };
     const error = qs("#form-error");
 
-    if (payload.name.length < 2 || payload.contact.length < 3 || payload.problem.length < 10) {
-      error.textContent = "Укажите имя, контакт и коротко расскажите о празднике.";
+    if (payload.name.length < 2 || payload.contact.length < 5 || !payload.eventDate || !payload.city || !payload.venue || !payload.messenger) {
+      error.textContent = "Заполните ФИО, телефон, дату, город, место проведения и удобный мессенджер.";
       error.hidden = false;
       return;
     }
 
     error.hidden = true;
     const button = qs('button[type="submit"]', form);
+    submitting = true;
     button.disabled = true;
     button.textContent = "Отправляем…";
 
     try {
       await store.create("lead", payload, "new");
       form.reset();
-      setNotice(store.mode === "local" ? project.form.successLocal : project.form.successRemote);
+      clearCart();
+      sessionStorage.setItem(SUCCESS_KEY, "1");
+      if (route() === "/") renderHome();
+      else location.hash = "#/";
     } catch (cause) {
       error.textContent = cause instanceof Error ? cause.message : "Не удалось сохранить заявку";
       error.hidden = false;
     } finally {
+      submitting = false;
       button.disabled = false;
-      button.textContent = project.cta;
+      button.textContent = project.form.submitLabel;
     }
   });
 
@@ -229,7 +314,7 @@ function renderCatalog() {
       <section class="section section--soft catalog-section">
         <div class="container">
           ${activeEvent ? `
-            <div class="package-grid">
+            ${packages.length ? `<div class="package-grid">
               ${packages.map((item) => `
                 <article class="package-card">
                   <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}: пример оформления" loading="lazy">
@@ -241,8 +326,13 @@ function renderCatalog() {
                   </div>
                 </article>
               `).join("")}
-            </div>
-            ${cartSummary()}
+            </div>${cartSummary()}` : `
+              <div class="empty">
+                <h2>Для этого раздела пока нет готовых вариантов</h2>
+                <p>Расскажите нам о своём празднике — мы предложим оформление под вашу задачу.</p>
+                <a class="button" href="#/request?type=custom">Оставить заявку</a>
+              </div>
+            `}
           ` : `<div class="event-grid">${project.events.map(eventCard).join("")}${customEventCard()}</div>`}
         </div>
       </section>
@@ -370,7 +460,12 @@ function renderCart() {
     button.addEventListener("click", () => {
       const index = cart.findIndex((item) => item.id === button.dataset.cartId);
       if (index === -1) return;
-      cart.splice(index, 1);
+      const [removed] = cart.splice(index, 1);
+      if (!saveCart()) {
+        cart.splice(index, 0, removed);
+        renderCart();
+        return;
+      }
       renderCart();
       setNotice("Вариант удалён из подборки.");
     });

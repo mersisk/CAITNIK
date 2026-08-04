@@ -22,6 +22,11 @@ async function testLocal() {
   assert.ok(created.id);
   assert.equal((await store.list("lead")).length, 1);
 
+  const firstSubmission = await store.create("lead", { name: "Без дубля", submissionId: "same-submit" });
+  const repeatedSubmission = await store.create("lead", { name: "Без дубля", submissionId: "same-submit" });
+  assert.equal(repeatedSubmission.id, firstSubmission.id);
+  assert.equal((await store.list("lead")).length, 2);
+
   const updated = await store.update(created.id, {
     status: "done",
     payload: { contact: "@airc" },
@@ -31,7 +36,7 @@ async function testLocal() {
   assert.equal(updated.payload.contact, "@airc");
 
   await store.archive(created.id);
-  assert.equal((await store.list("lead")).length, 0);
+  assert.equal((await store.list("lead")).length, 1);
 
   await store.reset("lead", [{ payload: { name: "Seed" }, status: "new" }]);
   assert.equal((await store.list("lead")).length, 1);
