@@ -45,6 +45,14 @@ const localStore = {
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   },
   async create(recordType, payload, status = "new") {
+    if (payload?.submissionId) {
+      const existing = readLocal().find((record) => (
+        record.record_type === recordType
+        && record.payload?.submissionId === payload.submissionId
+        && !record.archived_at
+      ));
+      if (existing) return normalizeRecord(existing);
+    }
     const now = new Date().toISOString();
     const record = normalizeRecord({
       id: crypto.randomUUID(),
