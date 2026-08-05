@@ -33,7 +33,7 @@ function saveCart() {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     return true;
   } catch {
-    setNotice("Не удалось сохранить подборку на этом устройстве.", "error");
+    setNotice("Не удалось сохранить корзину на этом устройстве.", "error");
     return false;
   }
 }
@@ -45,8 +45,9 @@ function clearCart() {
 
 const nav = (active) => [
   { href: "#/", label: "Главная", active: active === "/" },
+  { href: "#/about", label: "О нас", active: active === "/about" },
   { href: "#/catalog", label: "Каталог", active: active === "/catalog" },
-  { href: "#/cart", label: `Подборка${cart.length ? ` · ${cart.length}` : ""}`, active: active === "/cart" },
+  { href: "#/cart", label: `Корзина${cart.length ? ` · ${cart.length}` : ""}`, active: active === "/cart" },
   { href: "#/workspace", label: "Заявки", active: active === "/workspace" },
 ];
 
@@ -69,7 +70,7 @@ function selectedParam(name) {
 
 function addToCart(item) {
   if (cart.some((pack) => pack.id === item.id)) {
-    setNotice("Этот вариант уже добавлен в подборку.");
+    setNotice("Этот вариант уже добавлен в корзину.");
     return false;
   }
   cart.push(item);
@@ -77,33 +78,33 @@ function addToCart(item) {
     cart.pop();
     return false;
   }
-  setNotice("Вариант добавлен в подборку.");
+  setNotice("Вариант добавлен в корзину.");
   return true;
 }
 
 function eventCard(event) {
   return `
-    <article class="event-card">
+    <a class="event-card card-link" href="#/catalog?event=${encodeURIComponent(event.id)}" aria-label="${escapeHtml(event.title)} — выбрать оформление">
       <img src="${escapeHtml(event.image)}" alt="${escapeHtml(event.title)}: пример оформления" loading="lazy">
       <div class="event-card__body">
         <h3>${escapeHtml(event.title)}</h3>
         <p>${escapeHtml(event.text)}</p>
-        <a class="text-link" href="#/catalog?event=${encodeURIComponent(event.id)}">Выбрать оформление <span aria-hidden="true">→</span></a>
+        <span class="text-link">Выбрать оформление <span aria-hidden="true">→</span></span>
       </div>
-    </article>
+    </a>
   `;
 }
 
 function customEventCard() {
   return `
-    <article class="event-card event-card--custom">
+    <a class="event-card event-card--custom card-link" href="#/request?type=custom" aria-label="Описать другое событие">
       <div class="event-card__symbol" aria-hidden="true">✦</div>
       <div class="event-card__body">
         <h3>Другое событие</h3>
         <p>Корпоратив, выписка из роддома, помолвка или необычная идея — расскажите, что нужно оформить.</p>
-        <a class="text-link" href="#/request?type=custom">Описать свой запрос <span aria-hidden="true">→</span></a>
+        <span class="text-link">Описать свой запрос <span aria-hidden="true">→</span></span>
       </div>
-    </article>
+    </a>
   `;
 }
 
@@ -112,7 +113,7 @@ function cartSummary() {
   return `
     <aside class="cart-summary" aria-live="polite">
       <div>
-        <span class="badge">Ваша подборка</span>
+        <span class="badge">Ваша корзина</span>
         <p><strong>${cart.length === 1 ? "Выбран 1 вариант" : `Выбрано вариантов: ${cart.length}`}</strong></p>
         <p class="muted small">${cart.map((item) => escapeHtml(item.name)).join(", ")}</p>
       </div>
@@ -122,21 +123,22 @@ function cartSummary() {
 }
 
 function renderHome() {
+  const current = route();
   const showSuccess = sessionStorage.getItem(SUCCESS_KEY) === "1";
   if (showSuccess) sessionStorage.removeItem(SUCCESS_KEY);
   renderShell({
     title: `${project.name} — ${project.title}`,
-    nav: [...nav("/"), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: [...nav(current), { href: "#/styleguide", label: "Стиль", active: false }],
     content: `
       <section class="hero hero--decor">
         <div class="container hero-grid">
           <div>
+            <p class="hero-brand">Арт-деко</p>
             <p class="eyebrow">${escapeHtml(project.eyebrow)}</p>
             <h1>${escapeHtml(project.title)}</h1>
             <p class="lead">${escapeHtml(project.lead)}</p>
             <div class="actions">
               <a class="button" href="#/catalog">${escapeHtml(project.cta)}</a>
-              <a class="button button--secondary" href="#/story">${escapeHtml(project.secondaryCta)}</a>
             </div>
           </div>
           <aside class="hero-photo panel">
@@ -146,14 +148,22 @@ function renderHome() {
         </div>
       </section>
 
-      <section class="section section--soft">
-        <div class="container grid grid-3">
-          ${project.benefits.map((item) => `
-            <article class="card">
-              <h3>${escapeHtml(item.title)}</h3>
-              <p>${escapeHtml(item.text)}</p>
-            </article>
-          `).join("")}
+      <section class="trust-strip" aria-label="Что берём на себя"><div class="container trust-strip__grid"><p><strong>01</strong><span>Согласуем идею и детали</span></p><p><strong>02</strong><span>Свяжемся с площадкой</span></p><p><strong>03</strong><span>Подготовим и смонтируем декор</span></p></div></section>
+
+      <section id="about" class="section section--soft">
+        <div class="container">
+          <div class="section-heading">
+            <div><p class="eyebrow">О нас</p><h2>Оформление праздника — в одних руках</h2></div>
+          </div>
+          <div class="grid grid-3">
+            ${project.benefits.map((item) => `
+              <article class="card">
+                <h3>${escapeHtml(item.title)}</h3>
+                <p>${escapeHtml(item.text)}</p>
+              </article>
+            `).join("")}
+          </div>
+          <div class="actions"><a class="button button--secondary" href="#/about">Подробнее о нас</a></div>
         </div>
       </section>
 
@@ -227,7 +237,7 @@ function renderHome() {
             <button id="success-modal-close" class="modal-close" type="button" aria-label="Закрыть окно">×</button>
             <p class="eyebrow">Заявка принята</p>
             <h2 id="success-title">Спасибо за оформление заказа!</h2>
-            <p>Мы скоро свяжемся с вами, чтобы уточнить детали.</p>
+            <p>Заявка сохранена на этом устройстве. Пока сайт работает локально, она ещё не отправлена менеджеру.</p>
             <button id="success-modal-ok" class="button" type="button">Хорошо</button>
           </section>
         </div>
@@ -291,7 +301,77 @@ function renderHome() {
     }
   });
 
-  if (route() === "/request") requestAnimationFrame(() => qs("#request")?.scrollIntoView());
+  if (current !== "/request") qs("#request")?.remove();
+}
+
+function renderRequest() {
+  renderHome();
+  const main = qs("#main");
+  const request = qs("#request");
+  if (!main || !request) return;
+  [...main.children].forEach((section) => { if (section !== request) section.remove(); });
+  request.classList.add("request-page");
+  request.insertAdjacentHTML("afterbegin", `<div class="container request-back"><a class="back-link" href="#/cart">← Вернуться в корзину</a></div>`);
+  document.title = `Оформление заявки — ${project.name}`;
+}
+
+function floatingCart() {
+  return `<a class="floating-cart" href="#/cart" aria-label="Открыть корзину, товаров: ${cart.length}"><span aria-hidden="true">🛒</span> Корзина${cart.length ? `<b>${cart.length}</b>` : ""}</a>`;
+}
+
+function carouselMarkup(images, label, autoplay = false) {
+  return `<div class="carousel" data-carousel data-autoplay="${autoplay}" aria-label="${escapeHtml(label)}">
+    <div class="carousel__viewport" aria-live="polite">
+      ${images.map((image, index) => `<figure class="carousel__slide" ${index ? "hidden" : ""} data-slide><img src="${escapeHtml(image)}" alt="${escapeHtml(label)}, фотография ${index + 1}"><figcaption>${index + 1} из ${images.length}</figcaption></figure>`).join("")}
+      <button class="carousel__arrow carousel__arrow--prev" type="button" data-carousel-prev aria-label="Предыдущая фотография">←</button>
+      <button class="carousel__arrow carousel__arrow--next" type="button" data-carousel-next aria-label="Следующая фотография">→</button>
+    </div>
+    <div class="carousel__controls"><div class="carousel__dots" aria-label="Выбор фотографии">${images.map((_, index) => `<button type="button" data-carousel-dot="${index}" aria-label="Показать фотографию ${index + 1}" ${index ? "" : 'aria-current="true"'}></button>`).join("")}</div>${autoplay ? '<button class="carousel__pause" type="button" data-carousel-pause>Пауза</button>' : ""}</div>
+  </div>`;
+}
+
+function bindCarousels() {
+  qsa("[data-carousel]").forEach((carousel) => {
+    const slides = qsa("[data-slide]", carousel);
+    const dots = qsa("[data-carousel-dot]", carousel);
+    let active = 0;
+    let timer;
+    const show = (index) => {
+      active = (index + slides.length) % slides.length;
+      slides.forEach((slide, slideIndex) => { slide.hidden = slideIndex !== active; });
+      dots.forEach((dot, dotIndex) => dot.toggleAttribute("aria-current", dotIndex === active));
+    };
+    const stop = () => window.clearInterval(timer);
+    const start = () => { stop(); timer = window.setInterval(() => show(active + 1), 4500); };
+    qs("[data-carousel-prev]", carousel)?.addEventListener("click", () => show(active - 1));
+    qs("[data-carousel-next]", carousel)?.addEventListener("click", () => show(active + 1));
+    dots.forEach((dot) => dot.addEventListener("click", () => show(Number(dot.dataset.carouselDot))));
+    const pauseButton = qs("[data-carousel-pause]", carousel);
+    if (carousel.dataset.autoplay === "true" && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      start();
+      carousel.addEventListener("pointerenter", stop);
+      carousel.addEventListener("focusin", stop);
+      pauseButton?.addEventListener("click", (event) => {
+        const paused = event.currentTarget.textContent === "Продолжить";
+        if (paused) { start(); event.currentTarget.textContent = "Пауза"; }
+        else { stop(); event.currentTarget.textContent = "Продолжить"; }
+      });
+    } else if (pauseButton) {
+      pauseButton.textContent = "Автопрокрутка выключена";
+      pauseButton.disabled = true;
+    }
+  });
+}
+
+function renderAbout() {
+  renderShell({
+    title: `О нас — ${project.name}`,
+    nav: [...nav("/about"), { href: "#/styleguide", label: "Стиль", active: false }],
+    content: `<section class="section page-intro"><div class="container"><a class="back-link" href="#/">← На главную</a><p class="eyebrow">О компании</p><h1>Создаём оформление, которое собирает праздник в одно целое</h1><p class="lead">Здесь появится история «Арт-деко», опыт команды и фотографии настоящих проектов. Текст можно заменить, когда вы подготовите информацию о компании.</p></div></section>
+      <section class="section section--soft"><div class="container">${carouselMarkup(project.events.slice(0, 8).map((event) => event.image), "Работы Арт-деко", true)}</div></section>
+      <section class="section"><div class="container grid grid-3">${project.benefits.map((item) => `<article class="card detail-card"><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.text)}</p></article>`).join("")}</div></section>`,
+  });
+  bindCarousels();
 }
 
 function renderCatalog() {
@@ -307,8 +387,9 @@ function renderCatalog() {
         <div class="container">
           <p class="eyebrow">Каталог Арт-деко</p>
           <h1>${activeEvent ? escapeHtml(activeEvent.title) : "Выберите ваш праздник"}</h1>
-          <p class="lead">${activeEvent ? "Варианты отличаются по составу и бюджету. Добавьте понравившийся в подборку — менеджер уточнит детали." : "Нажмите на повод, чтобы увидеть подходящие варианты оформления и цены."}</p>
-          ${activeEvent ? '<a class="text-link" href="#/catalog">← Все поводы</a>' : ""}
+          <p class="lead">${activeEvent ? "Варианты отличаются по составу и бюджету. Добавьте понравившийся в корзину — точные детали согласуем позже." : "Нажмите на повод, чтобы увидеть подходящие варианты оформления и цены."}</p>
+          ${activeEvent ? '<p class="market-note">Цены «от» — временные ориентиры рынка. Итог зависит от размера, материалов, площадки и даты.</p>' : ""}
+          ${activeEvent ? '<a class="back-link" href="#/catalog">← Все поводы</a>' : ""}
         </div>
       </section>
       <section class="section section--soft catalog-section">
@@ -316,15 +397,15 @@ function renderCatalog() {
           ${activeEvent ? `
             ${packages.length ? `<div class="package-grid">
               ${packages.map((item) => `
-                <article class="package-card">
+                <a class="package-card card-link" href="#/package?id=${encodeURIComponent(item.id)}" aria-label="${escapeHtml(item.name)} — посмотреть варианты">
                   <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}: пример оформления" loading="lazy">
                   <div class="package-card__body">
                     <p class="price">${escapeHtml(item.price)}</p>
                     <h2>${escapeHtml(item.name)}</h2>
                     <p>${escapeHtml(item.includes)}</p>
-                    <a class="button" href="#/package?id=${encodeURIComponent(item.id)}">Посмотреть варианты</a>
+                    <span class="button">Посмотреть варианты</span>
                   </div>
-                </article>
+                </a>
               `).join("")}
             </div>${cartSummary()}` : `
               <div class="empty">
@@ -358,7 +439,7 @@ function renderPackage() {
     content: `
       <section class="section package-hero">
         <div class="container">
-          <a class="text-link" href="#/catalog?event=${encodeURIComponent(selectedPackage.eventId)}">← ${escapeHtml(event?.title || "Каталог")}</a>
+          <a class="back-link" href="#/catalog?event=${encodeURIComponent(selectedPackage.eventId)}">← ${escapeHtml(event?.title || "Каталог")}</a>
           <p class="eyebrow">${escapeHtml(event?.title || "Оформление")}</p>
           <h1>${escapeHtml(detail.heading)}</h1>
           <p class="lead">${escapeHtml(detail.description)}</p>
@@ -375,12 +456,13 @@ function renderPackage() {
           </div>
           <div class="variant-grid">
             ${detail.variants.map((variant) => `
-              <article class="variant-card">
+              <a class="variant-card card-link" href="#/variant?id=${encodeURIComponent(variant.id)}&package=${encodeURIComponent(selectedPackage.id)}" aria-label="${escapeHtml(variant.name)} — посмотреть оформление">
+                <img src="${escapeHtml(variant.image)}" alt="${escapeHtml(variant.name)}: место для будущей фотографии">
                 <p class="price">${escapeHtml(variant.price)}</p>
                 <h3>${escapeHtml(variant.name)}</h3>
                 <p>${escapeHtml(variant.includes)}</p>
-                <a class="button" href="#/variant?id=${encodeURIComponent(variant.id)}&package=${encodeURIComponent(selectedPackage.id)}">Посмотреть оформление</a>
-              </article>
+                <span class="button">Посмотреть оформление</span>
+              </a>
             `).join("")}
           </div>
           ${cartSummary()}
@@ -409,21 +491,22 @@ function renderVariant() {
     content: `
       <section class="section package-hero">
         <div class="container">
-          <a class="text-link" href="#/package?id=${encodeURIComponent(selectedPackage.id)}">← Все варианты услуги</a>
+          <a class="back-link" href="#/package?id=${encodeURIComponent(selectedPackage.id)}">← Все варианты услуги</a>
           <p class="eyebrow">${escapeHtml(detail.heading)}</p>
           <p class="price">${escapeHtml(variant.price)}</p>
           <h1>${escapeHtml(variant.name)}</h1>
-          <p class="lead">Посмотрите примеры этого оформления. Финальные цвета и детали согласуем с вами перед заказом.</p>
+          <p class="lead">Посмотрите места для будущих фотографий этого оформления. Финальные цвета, размер и детали согласуем перед заказом.</p>
+          <p class="market-note">Цена указана как временный ориентир и не является окончательной сметой.</p>
         </div>
       </section>
       <section class="section section--soft package-details">
         <div class="container">
-          <div class="gallery-grid" aria-label="Фотографии выбранного варианта">
-            ${detail.gallery.map((image, index) => `<img src="${escapeHtml(image)}" alt="${escapeHtml(variant.name)}: фотография оформления ${index + 1}" loading="${index ? "lazy" : "eager"}">`).join("")}
-          </div>
-          <div class="selected-variant panel">
+          <div class="variant-showcase">
+            ${carouselMarkup(variant.gallery || detail.gallery, variant.name)}
+            <div class="selected-variant panel">
             <div><span class="badge">Выбранный вариант</span><h2 style="margin-top:16px">${escapeHtml(variant.name)}</h2><p>${escapeHtml(variant.includes)}</p></div>
-            <button id="add-selected-variant" class="button" type="button">Добавить в подборку</button>
+            <button id="add-selected-variant" class="button" type="button">Добавить в корзину</button>
+            </div>
           </div>
         </div>
       </section>
@@ -431,26 +514,27 @@ function renderVariant() {
   });
 
   qs("#add-selected-variant").addEventListener("click", () => {
-    addToCart({ ...variant, image: selectedPackage.image, packageId: selectedPackage.id });
+    addToCart({ ...variant, image: variant.image || selectedPackage.image, packageId: selectedPackage.id });
     renderVariant();
   });
+  bindCarousels();
 }
 
 function renderCart() {
   renderShell({
-    title: `Подборка — ${project.name}`,
+    title: `Корзина — ${project.name}`,
     nav: [...nav("/cart"), { href: "#/styleguide", label: "Стиль", active: false }],
     content: `
       <section class="section">
         <div class="container">
-          <p class="eyebrow">Ваша подборка</p>
+          <p class="eyebrow">Ваша корзина</p>
           <h1>Выбранные варианты</h1>
           ${cart.length ? `
             <div class="cart-list">
               ${cart.map((item) => `<article class="cart-item"><img src="${escapeHtml(item.image)}" alt=""><div><p class="price">${escapeHtml(item.price)}</p><h2>${escapeHtml(item.name)}</h2><p>${escapeHtml(item.includes)}</p></div><button class="remove-cart button button--danger button--small" type="button" data-cart-id="${escapeHtml(item.id)}">Удалить</button></article>`).join("")}
             </div>
             <div class="actions"><a class="button" href="#/request">Оформить заявку</a><a class="button button--secondary" href="#/catalog">Добавить ещё</a></div>
-          ` : `<div class="empty"><h2>Подборка пока пуста</h2><p>Выберите праздник в каталоге и добавьте понравившийся вариант.</p><a class="button" href="#/catalog">Открыть каталог</a></div>`}
+          ` : `<div class="empty"><h2>Корзина пока пуста</h2><p>Выберите праздник в каталоге и добавьте понравившийся вариант.</p><a class="button" href="#/catalog">Открыть каталог</a></div>`}
         </div>
       </section>
     `,
@@ -467,7 +551,7 @@ function renderCart() {
         return;
       }
       renderCart();
-      setNotice("Вариант удалён из подборки.");
+      setNotice("Вариант удалён из корзины.");
     });
   });
 }
@@ -594,13 +678,17 @@ async function renderWorkspace() {
 
 async function render() {
   const current = route();
+  window.scrollTo(0, 0);
   if (current === "/workspace") return renderWorkspace();
-  if (current === "/catalog" || current === "/story") return renderCatalog();
-  if (current === "/package") return renderPackage();
-  if (current === "/variant") return renderVariant();
-  if (current === "/cart") return renderCart();
-  if (current === "/styleguide") return renderStyleguide();
-  return renderHome();
+  if (current === "/catalog" || current === "/story") renderCatalog();
+  else if (current === "/package") renderPackage();
+  else if (current === "/variant") renderVariant();
+  else if (current === "/cart") renderCart();
+  else if (current === "/about") renderAbout();
+  else if (current === "/request") renderRequest();
+  else if (current === "/styleguide") return renderStyleguide();
+  else renderHome();
+  qs("#app")?.insertAdjacentHTML("beforeend", floatingCart());
 }
 
 onRouteChange(() => {
