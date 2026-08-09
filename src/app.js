@@ -78,7 +78,6 @@ function addToCart(item) {
     cart.pop();
     return false;
   }
-  setNotice("Вариант добавлен в корзину.");
   return true;
 }
 
@@ -255,6 +254,12 @@ function renderHome() {
     `,
   });
 
+  const successModal = qs(".modal-backdrop");
+  if (successModal) {
+    qs("#app")?.append(successModal);
+    requestAnimationFrame(() => qs("#success-modal-close")?.focus());
+  }
+
   const closeSuccess = () => qs(".modal-backdrop")?.remove();
   qs("#success-modal-close")?.addEventListener("click", closeSuccess);
   qs("#success-modal-ok")?.addEventListener("click", closeSuccess);
@@ -371,6 +376,19 @@ function floatingCart() {
   return `<a class="floating-cart" href="#/cart" aria-label="Открыть корзину, товаров: ${cart.length}"><span aria-hidden="true">🛒</span> Корзина${cart.length ? `<b>${cart.length}</b>` : ""}</a>`;
 }
 
+function mountFloatingCart() {
+  qs(".floating-cart")?.remove();
+  qs("#app")?.insertAdjacentHTML("beforeend", floatingCart());
+}
+
+function renderMissingPage(title, message) {
+  renderShell({
+    title: `${title} — ${project.name}`,
+    nav: [...nav("/catalog"), { href: "#/styleguide", label: "Стиль", active: false }],
+    content: `<section class="section"><div class="container"><a class="back-link" href="#/catalog">← Вернуться в каталог</a><div class="empty"><span class="empty__symbol" aria-hidden="true">✦</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p><a class="button" href="#/catalog">Выбрать праздник</a></div></div></section>`,
+  });
+}
+
 function carouselMarkup(images, label, autoplay = false) {
   return `<div class="carousel" data-carousel data-autoplay="${autoplay}" aria-label="${escapeHtml(label)}">
     <div class="carousel__viewport" aria-live="polite">
@@ -431,6 +449,11 @@ function renderCatalog() {
   const activeEvent = project.events.find((event) => event.id === eventId);
   const packages = activeEvent ? project.packages.filter((item) => item.eventId === activeEvent.id) : [];
 
+  if (eventId && !activeEvent) {
+    renderMissingPage("Праздник не найден", "Возможно, ссылка устарела. Откройте каталог и выберите подходящий повод.");
+    return;
+  }
+
   renderShell({
     title: `Каталог — ${project.name}`,
     nav: [...nav("/catalog"), { href: "#/styleguide", label: "Стиль", active: false }],
@@ -461,6 +484,7 @@ function renderCatalog() {
               `).join("")}
             </div>${cartSummary()}` : `
               <div class="empty">
+                <span class="empty__symbol" aria-hidden="true">✦</span>
                 <h2>Для этого раздела пока нет готовых вариантов</h2>
                 <p>Расскажите нам о своём празднике — мы предложим оформление под вашу задачу.</p>
                 <a class="button" href="#/request?type=custom">Оставить заявку</a>
@@ -480,7 +504,7 @@ function renderPackage() {
   const detail = selectedPackage ? packageDetails[selectedPackage.id] : null;
 
   if (!selectedPackage || !detail) {
-    location.hash = "#/catalog";
+    renderMissingPage("Услуга не найдена", "Возможно, ссылка устарела. В каталоге можно выбрать доступный вариант оформления.");
     return;
   }
 
@@ -533,7 +557,7 @@ function renderVariant() {
   const variant = detail?.variants.find((item) => item.id === variantId);
 
   if (!selectedPackage || !detail || !variant) {
-    location.hash = "#/catalog";
+    renderMissingPage("Вариант не найден", "Возможно, ссылка устарела. Вернитесь в каталог и выберите другое оформление.");
     return;
   }
 
@@ -566,8 +590,11 @@ function renderVariant() {
   });
 
   qs("#add-selected-variant").addEventListener("click", () => {
-    addToCart({ ...variant, image: variant.image || selectedPackage.image, packageId: selectedPackage.id });
+    const added = addToCart({ ...variant, image: variant.image || selectedPackage.image, packageId: selectedPackage.id });
+    if (!added) return;
     renderVariant();
+    mountFloatingCart();
+    setNotice("Вариант добавлен в корзину.");
   });
   bindCarousels();
 }
@@ -583,10 +610,10 @@ function renderCart() {
           <h1>Выбранные варианты</h1>
           ${cart.length ? `
             <div class="cart-list">
-              ${cart.map((item) => `<article class="cart-item"><img src="${escapeHtml(item.image)}" alt=""><div><p class="price">${escapeHtml(item.price)}</p><h2>${escapeHtml(item.name)}</h2><p>${escapeHtml(item.includes)}</p></div><button class="remove-cart button button--danger button--small" type="button" data-cart-id="${escapeHtml(item.id)}" aria-label="Удалить ${escapeHtml(item.name)} из корзины">Удалить вариант</button></article>`).join("")}
+              ${cart.map((item) => `<article class="cart-item"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}: выбранное оформление"><div><p class="price">${escapeHtml(item.price)}</p><h2>${escapeHtml(item.name)}</h2><p>${escapeHtml(item.includes)}</p></div><button class="remove-cart button button--danger button--small" type="button" data-cart-id="${escapeHtml(item.id)}" aria-label="Удалить ${escapeHtml(item.name)} из корзины">Удалить вариант</button></article>`).join("")}
             </div>
             <div class="actions"><a class="button" href="#/request">Перейти к оформлению</a><a class="button button--secondary" href="#/catalog">Выбрать ещё оформление</a></div>
-          ` : `<div class="empty"><h2>Корзина пока пуста</h2><p>Выберите праздник в каталоге и добавьте понравившийся вариант.</p><a class="button" href="#/catalog">Открыть каталог</a></div>`}
+          ` : `<div class="empty"><span class="empty__symbol" aria-hidden="true">✦</span><h2>Корзина пока пуста</h2><p>Выберите праздник в каталоге и добавьте понравившийся вариант.</p><a class="button" href="#/catalog">Открыть каталог</a></div>`}
         </div>
       </section>
     `,
@@ -603,6 +630,7 @@ function renderCart() {
         return;
       }
       renderCart();
+      mountFloatingCart();
       setNotice("Вариант удалён из корзины.");
     });
   });
@@ -656,6 +684,7 @@ async function workspaceContent() {
             </article>
           `).join("") : `
             <div class="empty">
+              <span class="empty__symbol" aria-hidden="true">✦</span>
               <h3>Заявок пока нет</h3>
               <p>Открой главную и отправь первую тестовую форму.</p>
               <a class="button" href="#/">Открыть форму</a>
@@ -740,7 +769,7 @@ async function render() {
   else if (current === "/request") renderRequest();
   else if (current === "/styleguide") return renderStyleguide();
   else renderHome();
-  qs("#app")?.insertAdjacentHTML("beforeend", floatingCart());
+  mountFloatingCart();
 }
 
 onRouteChange(() => {
