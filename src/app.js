@@ -102,7 +102,7 @@ function customEventCard() {
       <div class="event-card__body">
         <h3>Другое событие</h3>
         <p>Корпоратив, выписка из роддома, помолвка или необычная идея — расскажите, что нужно оформить.</p>
-        <span class="text-link">Описать свой запрос <span aria-hidden="true">→</span></span>
+        <span class="text-link">Описать свой праздник <span aria-hidden="true">→</span></span>
       </div>
     </a>
   `;
@@ -227,7 +227,7 @@ function renderHome() {
               <span class="help">Можно указать число гостей, любимые цвета и важные детали праздника.</span>
             </label>
             <p id="form-error" class="field-error" hidden></p>
-            <button class="button" type="submit">${escapeHtml(project.form.submitLabel)}</button>
+            <button class="button" type="submit">${store.mode === "local" ? "Сохранить заявку" : escapeHtml(project.form.submitLabel)}</button>
           </form>
         </div>
       </section>
@@ -238,7 +238,7 @@ function renderHome() {
             <p class="eyebrow">Заявка принята</p>
             <h2 id="success-title">Спасибо за оформление заказа!</h2>
             <p>Заявка сохранена на этом устройстве. Пока сайт работает локально, она ещё не отправлена менеджеру.</p>
-            <button id="success-modal-ok" class="button" type="button">Хорошо</button>
+            <button id="success-modal-ok" class="button" type="button">Закрыть</button>
           </section>
         </div>
       ` : ""}
@@ -282,7 +282,8 @@ function renderHome() {
     const button = qs('button[type="submit"]', form);
     submitting = true;
     button.disabled = true;
-    button.textContent = "Отправляем…";
+    const submitLabel = store.mode === "local" ? "Сохранить заявку" : project.form.submitLabel;
+    button.textContent = store.mode === "local" ? "Сохраняем…" : "Отправляем…";
 
     try {
       await store.create("lead", payload, "new");
@@ -297,7 +298,7 @@ function renderHome() {
     } finally {
       submitting = false;
       button.disabled = false;
-      button.textContent = project.form.submitLabel;
+      button.textContent = submitLabel;
     }
   });
 
@@ -403,7 +404,7 @@ function renderCatalog() {
                     <p class="price">${escapeHtml(item.price)}</p>
                     <h2>${escapeHtml(item.name)}</h2>
                     <p>${escapeHtml(item.includes)}</p>
-                    <span class="button">Посмотреть варианты</span>
+                    <span class="card-link__action">Открыть варианты <span aria-hidden="true">→</span></span>
                   </div>
                 </a>
               `).join("")}
@@ -461,7 +462,7 @@ function renderPackage() {
                 <p class="price">${escapeHtml(variant.price)}</p>
                 <h3>${escapeHtml(variant.name)}</h3>
                 <p>${escapeHtml(variant.includes)}</p>
-                <span class="button">Посмотреть оформление</span>
+                <span class="card-link__action">Открыть оформление <span aria-hidden="true">→</span></span>
               </a>
             `).join("")}
           </div>
@@ -491,7 +492,7 @@ function renderVariant() {
     content: `
       <section class="section package-hero">
         <div class="container">
-          <a class="back-link" href="#/package?id=${encodeURIComponent(selectedPackage.id)}">← Все варианты услуги</a>
+          <a class="back-link" href="#/package?id=${encodeURIComponent(selectedPackage.id)}">← К вариантам оформления</a>
           <p class="eyebrow">${escapeHtml(detail.heading)}</p>
           <p class="price">${escapeHtml(variant.price)}</p>
           <h1>${escapeHtml(variant.name)}</h1>
@@ -531,9 +532,9 @@ function renderCart() {
           <h1>Выбранные варианты</h1>
           ${cart.length ? `
             <div class="cart-list">
-              ${cart.map((item) => `<article class="cart-item"><img src="${escapeHtml(item.image)}" alt=""><div><p class="price">${escapeHtml(item.price)}</p><h2>${escapeHtml(item.name)}</h2><p>${escapeHtml(item.includes)}</p></div><button class="remove-cart button button--danger button--small" type="button" data-cart-id="${escapeHtml(item.id)}">Удалить</button></article>`).join("")}
+              ${cart.map((item) => `<article class="cart-item"><img src="${escapeHtml(item.image)}" alt=""><div><p class="price">${escapeHtml(item.price)}</p><h2>${escapeHtml(item.name)}</h2><p>${escapeHtml(item.includes)}</p></div><button class="remove-cart button button--danger button--small" type="button" data-cart-id="${escapeHtml(item.id)}" aria-label="Удалить ${escapeHtml(item.name)} из корзины">Удалить вариант</button></article>`).join("")}
             </div>
-            <div class="actions"><a class="button" href="#/request">Оформить заявку</a><a class="button button--secondary" href="#/catalog">Добавить ещё</a></div>
+            <div class="actions"><a class="button" href="#/request">Перейти к оформлению</a><a class="button button--secondary" href="#/catalog">Выбрать ещё оформление</a></div>
           ` : `<div class="empty"><h2>Корзина пока пуста</h2><p>Выберите праздник в каталоге и добавьте понравившийся вариант.</p><a class="button" href="#/catalog">Открыть каталог</a></div>`}
         </div>
       </section>
@@ -598,7 +599,7 @@ async function workspaceContent() {
                       `).join("")}
                     </select>
                   </label>
-                  <button class="archive button button--danger button--small">В архив</button>
+                  <button class="archive button button--danger button--small">Переместить в архив</button>
                 </div>
               </div>
             </article>
