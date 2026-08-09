@@ -778,3 +778,10 @@ onRouteChange(() => {
     setNotice(error.message || "Ошибка приложения", "error");
   });
 });
+
+qs(".skip-link")?.addEventListener("click", (event) => {
+  event.preventDefault();
+  const main = qs("#main");
+  main?.focus();
+  main?.scrollIntoView({ block: "start" });
+});

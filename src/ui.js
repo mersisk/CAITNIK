@@ -50,7 +50,7 @@ export function renderShell({ title, nav, content }) {
         ${nav.map((item) => `<a href="${item.href}" ${item.active ? 'aria-current="page"' : ""}>${escapeHtml(item.label)}</a>`).join("")}
       </nav>
     </header>
-    <main id="main">${content}</main>
+    <main id="main" tabindex="-1">${content}</main>
     <div id="global-notice" class="notice" hidden role="status" aria-live="polite"></div>
     <footer class="site-footer">
       <span>Арт-деко · декор для особенных событий</span>
