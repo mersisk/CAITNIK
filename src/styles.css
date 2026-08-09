@@ -185,7 +185,7 @@ h3 { font-size: 20px; margin-bottom: 10px; }
 .carousel__arrow--prev { left: 16px; }
 .carousel__arrow--next { right: 16px; }
 .carousel__controls { display: flex; justify-content: center; align-items: center; gap: 16px; padding-top: 16px; }
-.carousel__dots { display: flex; justify-content: center; gap: 0; }
+.carousel__dots { display: flex; flex-wrap: wrap; justify-content: center; max-width: 176px; gap: 0; }
 .carousel__dots button { position: relative; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: var(--radius-control); background: transparent; cursor: pointer; }
 .carousel__dots button::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: #c5bdcf; transition: width .2s ease, background .2s ease; }
 .carousel__dots button[aria-current="true"]::after { width: 30px; border-radius: 99px; background: var(--accent); }
