@@ -54,7 +54,6 @@ export function renderShell({ title, nav, content }) {
     <div id="global-notice" class="notice" hidden role="status" aria-live="polite"></div>
     <footer class="site-footer">
       <span>Арт-деко · декор для особенных событий</span>
-      <a href="#/styleguide">Стиль проекта</a>
     </footer>
   `;
 }

@@ -48,7 +48,6 @@ const nav = (active) => [
   { href: "#/about", label: "О нас", active: active === "/about" },
   { href: "#/catalog", label: "Каталог", active: active === "/catalog" },
   { href: "#/cart", label: `Корзина${cart.length ? ` · ${cart.length}` : ""}`, active: active === "/cart" },
-  { href: "#/workspace", label: "Заявки", active: active === "/workspace" },
 ];
 
 function selectedEventId() {
@@ -127,7 +126,7 @@ function renderHome() {
   if (showSuccess) sessionStorage.removeItem(SUCCESS_KEY);
   renderShell({
     title: `${project.name} — ${project.title}`,
-    nav: [...nav(current), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: nav(current),
     content: `
       <section class="hero hero--decor">
         <div class="container hero-grid">
@@ -385,7 +384,7 @@ function mountFloatingCart() {
 function renderMissingPage(title, message) {
   renderShell({
     title: `${title} — ${project.name}`,
-    nav: [...nav("/catalog"), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: nav("/catalog"),
     content: `<section class="section"><div class="container"><a class="back-link" href="#/catalog">← Вернуться в каталог</a><div class="empty"><span class="empty__symbol" aria-hidden="true">✦</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p><a class="button" href="#/catalog">Выбрать праздник</a></div></div></section>`,
   });
 }
@@ -437,7 +436,7 @@ function bindCarousels() {
 function renderAbout() {
   renderShell({
     title: `О нас — ${project.name}`,
-    nav: [...nav("/about"), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: nav("/about"),
     content: `<section class="section page-intro"><div class="container"><a class="back-link" href="#/">← На главную</a><p class="eyebrow">О компании</p><h1>Создаём оформление, которое собирает праздник в одно целое</h1><p class="lead">Здесь появится история «Арт-деко», опыт команды и фотографии настоящих проектов. Текст можно заменить, когда вы подготовите информацию о компании.</p></div></section>
       <section class="section section--soft"><div class="container">${carouselMarkup(project.events.slice(0, 8).map((event) => event.image), "Работы Арт-деко", true)}</div></section>
       <section class="section"><div class="container grid grid-3">${project.benefits.map((item) => `<article class="card detail-card"><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.text)}</p></article>`).join("")}</div></section>`,
@@ -457,7 +456,7 @@ function renderCatalog() {
 
   renderShell({
     title: `Каталог — ${project.name}`,
-    nav: [...nav("/catalog"), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: nav("/catalog"),
     content: `
       <section class="section catalog-hero">
         <div class="container">
@@ -512,7 +511,7 @@ function renderPackage() {
   const event = project.events.find((item) => item.id === selectedPackage.eventId);
   renderShell({
     title: `${detail.heading} — ${project.name}`,
-    nav: [...nav("/catalog"), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: nav("/catalog"),
     content: `
       <section class="section package-hero">
         <div class="container">
@@ -564,7 +563,7 @@ function renderVariant() {
 
   renderShell({
     title: `${variant.name} — ${project.name}`,
-    nav: [...nav("/catalog"), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: nav("/catalog"),
     content: `
       <section class="section package-hero">
         <div class="container">
@@ -603,7 +602,7 @@ function renderVariant() {
 function renderCart() {
   renderShell({
     title: `Корзина — ${project.name}`,
-    nav: [...nav("/cart"), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: nav("/cart"),
     content: `
       <section class="section">
         <div class="container">
@@ -700,7 +699,7 @@ async function workspaceContent() {
 async function renderWorkspace() {
   renderShell({
     title: `Заявки — ${project.name}`,
-    nav: [...nav("/workspace"), { href: "#/styleguide", label: "Стиль", active: false }],
+    nav: nav("/workspace"),
     content: '<section class="section"><div class="container"><p>Загружаю записи…</p></div></section>',
   });
 
