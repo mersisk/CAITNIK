@@ -33,7 +33,7 @@ function saveCart() {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     return true;
   } catch {
-    setNotice("Не удалось сохранить корзину на этом устройстве.", "error");
+    setNotice("Не удалось сохранить корзину. Освободите место в браузере и попробуйте добавить вариант ещё раз.", "error");
     return false;
   }
 }
@@ -185,48 +185,58 @@ function renderHome() {
       <section id="request" class="section">
         <div class="container grid grid-2">
           <div>
-            <p class="eyebrow">Главное действие</p>
+            <p class="eyebrow">Заявка на оформление</p>
             <h2>${route() === "/request" && selectedParam("type") === "custom" ? "Расскажите о вашем событии" : escapeHtml(project.form.title)}</h2>
-            <p class="lead">${route() === "/request" && selectedParam("type") === "custom" ? "Опишите праздник, площадку и ваши пожелания — менеджер подберёт подходящее оформление." : escapeHtml(project.form.note)}</p>
+            <p class="lead">${route() === "/request" && selectedParam("type") === "custom" ? "Опишите праздник, площадку и пожелания — сохраним их вместе с вашими контактами." : escapeHtml(project.form.note)}</p>
             ${cart.length ? `<p class="selection-note"><strong>Выбрано:</strong> ${cart.map((item) => escapeHtml(item.name)).join(", ")}</p>` : ""}
           </div>
           <form id="lead-form" class="panel stack" novalidate>
+            <p class="form-required-note"><span aria-hidden="true">*</span> Обязательные поля</p>
             <label>
-              ФИО
-              <input name="name" autocomplete="name" maxlength="120" required>
-              <span class="help">Как к вам обращаться.</span>
+              <span class="field-label">Имя и фамилия <span class="required-mark" aria-hidden="true">*</span></span>
+              <input id="lead-name" name="name" autocomplete="name" maxlength="120" aria-describedby="name-help name-error" required>
+              <span id="name-help" class="help">Как к вам обращаться.</span>
+              <span id="name-error" class="field-error field-error--inline" hidden></span>
             </label>
             <label>
-              Номер телефона
-              <input name="contact" type="tel" autocomplete="tel" maxlength="30" required>
+              <span class="field-label">Номер телефона <span class="required-mark" aria-hidden="true">*</span></span>
+              <input id="lead-contact" name="contact" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="Например, +7 999 123-45-67" aria-describedby="contact-help contact-error" required>
+              <span id="contact-help" class="help">Нужен для согласования деталей оформления.</span>
+              <span id="contact-error" class="field-error field-error--inline" hidden></span>
             </label>
             <label>
-              Дата события
-              <input name="eventDate" type="date" required>
+              <span class="field-label">Дата события <span class="required-mark" aria-hidden="true">*</span></span>
+              <input id="lead-date" name="eventDate" type="date" aria-describedby="eventDate-error" required>
+              <span id="eventDate-error" class="field-error field-error--inline" hidden></span>
             </label>
             <label>
-              Город
-              <input name="city" autocomplete="address-level2" maxlength="100" required>
+              <span class="field-label">Город <span class="required-mark" aria-hidden="true">*</span></span>
+              <input id="lead-city" name="city" autocomplete="address-level2" maxlength="100" aria-describedby="city-error" required>
+              <span id="city-error" class="field-error field-error--inline" hidden></span>
             </label>
             <label>
-              Место проведения
-              <input name="venue" autocomplete="street-address" maxlength="200" required>
+              <span class="field-label">Место проведения <span class="required-mark" aria-hidden="true">*</span></span>
+              <input id="lead-venue" name="venue" autocomplete="street-address" maxlength="200" placeholder="Название площадки или адрес" aria-describedby="venue-help venue-error" required>
+              <span id="venue-help" class="help">Если площадка ещё не выбрана, напишите «Не выбрано».</span>
+              <span id="venue-error" class="field-error field-error--inline" hidden></span>
             </label>
             <label>
-              Где вам удобнее ответить
-              <select name="messenger" required>
+              <span class="field-label">Удобный мессенджер <span class="required-mark" aria-hidden="true">*</span></span>
+              <select id="lead-messenger" name="messenger" aria-describedby="messenger-help messenger-error" required>
                 <option value="">Выберите мессенджер</option>
                 <option value="MAX">MAX</option>
                 <option value="Telegram">Telegram</option>
                 <option value="WhatsApp">WhatsApp</option>
               </select>
+              <span id="messenger-help" class="help">Сохраним предпочитаемый способ связи вместе с заявкой.</span>
+              <span id="messenger-error" class="field-error field-error--inline" hidden></span>
             </label>
             <label>
-              Пожелания <span class="muted">(необязательно)</span>
+              <span class="field-label">Пожелания <span class="muted">(необязательно)</span></span>
               <textarea name="details" maxlength="1200" placeholder="Например: сколько будет гостей? Какая цветовая гамма нравится? Есть ли особенности площадки?"></textarea>
               <span class="help">Можно указать число гостей, любимые цвета и важные детали праздника.</span>
             </label>
-            <p id="form-error" class="field-error" hidden></p>
+            <p id="form-error" class="form-error-summary" role="alert" tabindex="-1" hidden></p>
             <button class="button" type="submit">${store.mode === "local" ? "Сохранить заявку" : escapeHtml(project.form.submitLabel)}</button>
           </form>
         </div>
@@ -249,9 +259,28 @@ function renderHome() {
   qs("#success-modal-close")?.addEventListener("click", closeSuccess);
   qs("#success-modal-ok")?.addEventListener("click", closeSuccess);
 
+  const leadForm = qs("#lead-form");
+  const dateField = qs('[name="eventDate"]', leadForm);
+  const now = new Date();
+  const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  dateField.min = localToday;
+
+  const clearFieldError = (field) => {
+    field.removeAttribute("aria-invalid");
+    const fieldError = qs(`#${field.name}-error`, leadForm);
+    if (fieldError) {
+      fieldError.textContent = "";
+      fieldError.hidden = true;
+    }
+  };
+
+  qsa("input, select, textarea", leadForm).forEach((field) => {
+    field.addEventListener(field.tagName === "SELECT" ? "change" : "input", () => clearFieldError(field));
+  });
+
   let submitting = false;
   const submissionId = crypto.randomUUID();
-  qs("#lead-form").addEventListener("submit", async (event) => {
+  leadForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (submitting) return;
     const form = event.currentTarget;
@@ -270,11 +299,30 @@ function renderHome() {
       selectedVariants: cart.map((item) => ({ id: item.id, name: item.name, price: item.price })),
       problem: `${selectedNames ? `Выбрано: ${selectedNames}. ` : ""}${details}`.trim(),
     };
-    const error = qs("#form-error");
+    const error = qs("#form-error", form);
+    qsa("[aria-invalid]", form).forEach(clearFieldError);
+    error.hidden = true;
 
-    if (payload.name.length < 2 || payload.contact.length < 5 || !payload.eventDate || !payload.city || !payload.venue || !payload.messenger) {
-      error.textContent = "Заполните ФИО, телефон, дату, город, место проведения и удобный мессенджер.";
+    const validationErrors = [];
+    if (payload.name.length < 2) validationErrors.push(["name", "Введите имя — не меньше 2 символов."]);
+    if (payload.contact.replace(/\D/g, "").length < 5) validationErrors.push(["contact", "Укажите номер телефона — не меньше 5 цифр."]);
+    if (!payload.eventDate) validationErrors.push(["eventDate", "Выберите дату события."]);
+    else if (payload.eventDate < localToday) validationErrors.push(["eventDate", "Выберите сегодняшнюю или будущую дату."]);
+    if (!payload.city) validationErrors.push(["city", "Укажите город проведения."]);
+    if (!payload.venue) validationErrors.push(["venue", "Укажите площадку, адрес или напишите «Не выбрано»."]);
+    if (!payload.messenger) validationErrors.push(["messenger", "Выберите удобный мессенджер."]);
+
+    if (validationErrors.length) {
+      validationErrors.forEach(([name, message]) => {
+        const field = qs(`[name="${name}"]`, form);
+        const fieldError = qs(`#${name}-error`, form);
+        field.setAttribute("aria-invalid", "true");
+        fieldError.textContent = message;
+        fieldError.hidden = false;
+      });
+      error.textContent = "Проверьте выделенные поля — рядом с каждым указано, что исправить.";
       error.hidden = false;
+      qs("[aria-invalid]", form)?.focus();
       return;
     }
 
@@ -292,9 +340,12 @@ function renderHome() {
       sessionStorage.setItem(SUCCESS_KEY, "1");
       if (route() === "/") renderHome();
       else location.hash = "#/";
-    } catch (cause) {
-      error.textContent = cause instanceof Error ? cause.message : "Не удалось сохранить заявку";
+    } catch {
+      error.textContent = store.mode === "local"
+        ? "Не удалось сохранить заявку на устройстве. Данные остались в форме: освободите место в браузере и нажмите «Сохранить заявку» ещё раз."
+        : "Не удалось отправить заявку. Данные остались в форме — проверьте интернет и попробуйте ещё раз.";
       error.hidden = false;
+      error.focus();
     } finally {
       submitting = false;
       button.disabled = false;

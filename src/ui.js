@@ -31,6 +31,8 @@ export function setNotice(message, type = "success") {
   if (!node) return;
   node.textContent = message;
   node.className = `notice notice--${type}`;
+  node.setAttribute("role", type === "error" ? "alert" : "status");
+  node.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
   node.hidden = false;
   window.clearTimeout(window.__aircNoticeTimer);
   window.__aircNoticeTimer = window.setTimeout(() => {

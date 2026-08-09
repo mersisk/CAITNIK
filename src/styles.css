@@ -6,6 +6,7 @@
   --text: #201a2b;
   --muted: #675f73;
   --line: #ded8e8;
+  --line-strong: #b9afc7;
   --accent: #b84a72;
   --accent-strong: #913653;
   --success: #176b49;
@@ -208,18 +209,29 @@ h3 { font-size: 20px; margin-bottom: 10px; }
 .split { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
 .metric { font-size: 36px; font-weight: 850; letter-spacing: -.04em; }
 
-label { display: grid; gap: 7px; font-weight: 700; }
+label { display: grid; gap: 8px; font-weight: 700; }
+.field-label { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: baseline; }
+.required-mark, .form-required-note { color: var(--danger); }
+.form-required-note { margin: 0; font-size: 14px; font-weight: 700; }
 input, textarea, select {
   width: 100%;
-  border: 1px solid #cfc7dc;
-  border-radius: 11px;
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
   padding: 12px 14px;
   background: white;
   color: var(--text);
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
 }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: .82; }
+input:hover, textarea:hover, select:hover { border-color: var(--accent); }
+input:focus, textarea:focus, select:focus { border-color: var(--accent-strong); box-shadow: 0 0 0 4px rgba(184, 74, 114, .12); }
+input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--danger); background: var(--danger-soft); }
 textarea { min-height: 120px; resize: vertical; }
 .field-error { color: var(--danger); margin: 0; font-size: 14px; }
-.help { color: var(--muted); font-size: 13px; font-weight: 450; }
+.field-error--inline { font-weight: 650; }
+.form-error-summary { margin: 0; padding: 12px 14px; border-left: 3px solid var(--danger); border-radius: var(--radius-control); background: var(--danger-soft); color: var(--danger); font-size: 14px; font-weight: 700; }
+.help { color: var(--muted); font-size: 14px; font-weight: 450; }
 
 .badge {
   display: inline-flex;
