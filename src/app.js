@@ -378,6 +378,7 @@ function floatingCart() {
 
 function mountFloatingCart() {
   qs(".floating-cart")?.remove();
+  if (route() === "/request") return;
   qs("#app")?.insertAdjacentHTML("beforeend", floatingCart());
 }
 
