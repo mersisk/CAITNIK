@@ -139,13 +139,19 @@ function renderHome() {
       <section class="hero hero--decor">
         <div class="container hero-grid">
           <div>
-            <p class="hero-brand">Арт-деко</p>
+            <div class="hero-logo" role="img" aria-label="Арт-деко"></div>
             <p class="eyebrow">${escapeHtml(project.eyebrow)}</p>
             <h1>${escapeHtml(project.title)}</h1>
             <p class="lead">${escapeHtml(project.lead)}</p>
             <div class="hero-primary-action">
               <a class="button" href="#/catalog">${escapeHtml(project.cta)}</a>
-              <a class="hero-phone-link" href="${escapeHtml(project.phone.href)}">Позвонить: ${escapeHtml(project.phone.display)}</a>
+              <a class="hero-contact" href="${escapeHtml(project.phone.href)}">
+                <span class="hero-contact__symbol" aria-hidden="true">✦</span>
+                <span class="hero-contact__text">
+                  <small>Позвоните — обсудим ваш праздник</small>
+                  <strong>${escapeHtml(project.phone.display)}</strong>
+                </span>
+              </a>
             </div>
           </div>
           <aside class="hero-photo panel">

@@ -45,7 +45,10 @@ export function renderShell({ title, nav, content }) {
   const root = qs("#app");
   root.innerHTML = `
     <header class="site-header">
-      <a class="brand" href="#/">Арт-деко</a>
+      <a class="brand" href="#/" aria-label="Арт-деко — на главную">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Арт-деко</span>
+      </a>
       <nav class="nav" aria-label="Главная навигация">
         ${nav.map((item) => `<a href="${item.href}" ${item.active ? 'aria-current="page"' : ""}>${escapeHtml(item.label)}</a>`).join("")}
       </nav>
