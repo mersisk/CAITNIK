@@ -15,7 +15,6 @@ import {
 import { renderStyleguide } from "./styleguide.js";
 
 const CART_KEY = "art_deco_cart_v1";
-const SUCCESS_KEY = "art_deco_show_success_v1";
 
 function readCart() {
   try {
@@ -36,11 +35,6 @@ function saveCart() {
     setNotice("Не удалось сохранить корзину. Освободите место в браузере и попробуйте добавить вариант ещё раз.", "error");
     return false;
   }
-}
-
-function clearCart() {
-  cart.length = 0;
-  return saveCart();
 }
 
 const nav = (active) => [
@@ -95,14 +89,30 @@ function eventCard(event) {
 
 function customEventCard() {
   return `
-    <a class="event-card event-card--custom card-link" href="#/request?type=custom" aria-label="Описать другое событие">
+    <a class="event-card event-card--custom card-link" href="${escapeHtml(project.phone.href)}" aria-label="Позвонить и обсудить другое событие">
       <div class="event-card__symbol" aria-hidden="true">✦</div>
       <div class="event-card__body">
         <h3>Другое событие</h3>
-        <p>Корпоратив, выписка из роддома, помолвка или необычная идея — расскажите, что нужно оформить.</p>
-        <span class="text-link">Описать свой праздник <span aria-hidden="true">→</span></span>
+        <p>Корпоратив, выписка из роддома, помолвка или необычная идея — позвоните и расскажите, что нужно оформить.</p>
+        <span class="text-link">Позвонить ${escapeHtml(project.phone.display)} <span aria-hidden="true">→</span></span>
       </div>
     </a>
+  `;
+}
+
+function callPanel() {
+  return `
+    <aside class="call-panel panel" aria-labelledby="call-title">
+      <div>
+        <p class="eyebrow">Связь с декоратором</p>
+        <h2 id="call-title">Позвоните, чтобы обсудить оформление</h2>
+        <p>Назовите выбранные варианты — уточним свободную дату, размеры, состав и итоговую стоимость.</p>
+      </div>
+      <div class="call-panel__actions">
+        <a class="phone-link" href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>
+        <a class="button" href="${escapeHtml(project.phone.href)}">Позвонить сейчас</a>
+      </div>
+    </aside>
   `;
 }
 
@@ -115,15 +125,13 @@ function cartSummary() {
         <p><strong>${cart.length === 1 ? "Выбран 1 вариант" : `Выбрано вариантов: ${cart.length}`}</strong></p>
         <p class="muted small">${cart.map((item) => escapeHtml(item.name)).join(", ")}</p>
       </div>
-      <a class="button" href="#/cart">Перейти к заявке</a>
+      <a class="button" href="#/cart">Открыть корзину</a>
     </aside>
   `;
 }
 
 function renderHome() {
   const current = route();
-  const showSuccess = sessionStorage.getItem(SUCCESS_KEY) === "1";
-  if (showSuccess) sessionStorage.removeItem(SUCCESS_KEY);
   renderShell({
     title: `${project.name} — ${project.title}`,
     nav: nav(current),
@@ -172,203 +180,17 @@ function renderHome() {
               <p class="eyebrow">Каталог</p>
               <h2>Какой праздник вы планируете?</h2>
             </div>
-            <a class="text-link" href="#/catalog">Открыть весь каталог <span aria-hidden="true">→</span></a>
           </div>
           <div class="event-grid">
-            ${project.events.map(eventCard).join("")}${customEventCard()}
+            ${project.events.slice(0, 3).map(eventCard).join("")}
           </div>
+          <div class="catalog-more"><a class="button button--secondary" href="#/catalog">Перейти в каталог</a></div>
         </div>
       </section>
 
-      <section id="request" class="section">
-        <div class="container grid grid-2">
-          <div>
-            <p class="eyebrow">Заявка на оформление</p>
-            <h2>${route() === "/request" && selectedParam("type") === "custom" ? "Расскажите о вашем событии" : escapeHtml(project.form.title)}</h2>
-            <p class="lead">${route() === "/request" && selectedParam("type") === "custom" ? "Опишите праздник, площадку и пожелания — сохраним их вместе с вашими контактами." : escapeHtml(project.form.note)}</p>
-            ${cart.length ? `<p class="selection-note"><strong>Выбрано:</strong> ${cart.map((item) => escapeHtml(item.name)).join(", ")}</p>` : ""}
-          </div>
-          <form id="lead-form" class="panel stack" novalidate>
-            <p class="form-required-note"><span aria-hidden="true">*</span> Обязательные поля</p>
-            <label>
-              <span class="field-label">Имя и фамилия <span class="required-mark" aria-hidden="true">*</span></span>
-              <input id="lead-name" name="name" autocomplete="name" maxlength="120" aria-describedby="name-help name-error" required>
-              <span id="name-help" class="help">Как к вам обращаться.</span>
-              <span id="name-error" class="field-error field-error--inline" hidden></span>
-            </label>
-            <label>
-              <span class="field-label">Номер телефона <span class="required-mark" aria-hidden="true">*</span></span>
-              <input id="lead-contact" name="contact" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="Например, +7 999 123-45-67" aria-describedby="contact-help contact-error" required>
-              <span id="contact-help" class="help">Нужен для согласования деталей оформления.</span>
-              <span id="contact-error" class="field-error field-error--inline" hidden></span>
-            </label>
-            <label>
-              <span class="field-label">Дата события <span class="required-mark" aria-hidden="true">*</span></span>
-              <input id="lead-date" name="eventDate" type="date" aria-describedby="eventDate-error" required>
-              <span id="eventDate-error" class="field-error field-error--inline" hidden></span>
-            </label>
-            <label>
-              <span class="field-label">Город <span class="required-mark" aria-hidden="true">*</span></span>
-              <input id="lead-city" name="city" autocomplete="address-level2" maxlength="100" aria-describedby="city-error" required>
-              <span id="city-error" class="field-error field-error--inline" hidden></span>
-            </label>
-            <label>
-              <span class="field-label">Место проведения <span class="required-mark" aria-hidden="true">*</span></span>
-              <input id="lead-venue" name="venue" autocomplete="street-address" maxlength="200" placeholder="Название площадки или адрес" aria-describedby="venue-help venue-error" required>
-              <span id="venue-help" class="help">Если площадка ещё не выбрана, напишите «Не выбрано».</span>
-              <span id="venue-error" class="field-error field-error--inline" hidden></span>
-            </label>
-            <label>
-              <span class="field-label">Удобный мессенджер <span class="required-mark" aria-hidden="true">*</span></span>
-              <select id="lead-messenger" name="messenger" aria-describedby="messenger-help messenger-error" required>
-                <option value="">Выберите мессенджер</option>
-                <option value="MAX">MAX</option>
-                <option value="Telegram">Telegram</option>
-                <option value="WhatsApp">WhatsApp</option>
-              </select>
-              <span id="messenger-help" class="help">Сохраним предпочитаемый способ связи вместе с заявкой.</span>
-              <span id="messenger-error" class="field-error field-error--inline" hidden></span>
-            </label>
-            <label>
-              <span class="field-label">Пожелания <span class="muted">(необязательно)</span></span>
-              <textarea name="details" maxlength="1200" placeholder="Например: сколько будет гостей? Какая цветовая гамма нравится? Есть ли особенности площадки?"></textarea>
-              <span class="help">Можно указать число гостей, любимые цвета и важные детали праздника.</span>
-            </label>
-            <p id="form-error" class="form-error-summary" role="alert" tabindex="-1" hidden></p>
-            <button class="button" type="submit">${store.mode === "local" ? "Сохранить заявку" : escapeHtml(project.form.submitLabel)}</button>
-          </form>
-        </div>
-      </section>
-      ${showSuccess ? `
-        <div class="modal-backdrop" role="presentation">
-          <section class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-title">
-            <button id="success-modal-close" class="modal-close" type="button" aria-label="Закрыть окно">×</button>
-            <p class="eyebrow">Заявка принята</p>
-            <h2 id="success-title">Спасибо за оформление заказа!</h2>
-            <p>Заявка сохранена на этом устройстве. Пока сайт работает локально, она ещё не отправлена менеджеру.</p>
-            <button id="success-modal-ok" class="button" type="button">Закрыть</button>
-          </section>
-        </div>
-      ` : ""}
     `,
   });
 
-  const successModal = qs(".modal-backdrop");
-  if (successModal) {
-    qs("#app")?.append(successModal);
-    requestAnimationFrame(() => qs("#success-modal-close")?.focus());
-  }
-
-  const closeSuccess = () => qs(".modal-backdrop")?.remove();
-  qs("#success-modal-close")?.addEventListener("click", closeSuccess);
-  qs("#success-modal-ok")?.addEventListener("click", closeSuccess);
-
-  const leadForm = qs("#lead-form");
-  const dateField = qs('[name="eventDate"]', leadForm);
-  const now = new Date();
-  const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  dateField.min = localToday;
-
-  const clearFieldError = (field) => {
-    field.removeAttribute("aria-invalid");
-    const fieldError = qs(`#${field.name}-error`, leadForm);
-    if (fieldError) {
-      fieldError.textContent = "";
-      fieldError.hidden = true;
-    }
-  };
-
-  qsa("input, select, textarea", leadForm).forEach((field) => {
-    field.addEventListener(field.tagName === "SELECT" ? "change" : "input", () => clearFieldError(field));
-  });
-
-  let submitting = false;
-  const submissionId = crypto.randomUUID();
-  leadForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (submitting) return;
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const selectedNames = cart.map((item) => item.name).join(", ");
-    const details = String(data.get("details") || "").trim();
-    const payload = {
-      submissionId,
-      name: String(data.get("name") || "").trim(),
-      contact: String(data.get("contact") || "").trim(),
-      eventDate: String(data.get("eventDate") || ""),
-      city: String(data.get("city") || "").trim(),
-      venue: String(data.get("venue") || "").trim(),
-      messenger: String(data.get("messenger") || ""),
-      details,
-      selectedVariants: cart.map((item) => ({ id: item.id, name: item.name, price: item.price })),
-      problem: `${selectedNames ? `Выбрано: ${selectedNames}. ` : ""}${details}`.trim(),
-    };
-    const error = qs("#form-error", form);
-    qsa("[aria-invalid]", form).forEach(clearFieldError);
-    error.hidden = true;
-
-    const validationErrors = [];
-    if (payload.name.length < 2) validationErrors.push(["name", "Введите имя — не меньше 2 символов."]);
-    if (payload.contact.replace(/\D/g, "").length < 5) validationErrors.push(["contact", "Укажите номер телефона — не меньше 5 цифр."]);
-    if (!payload.eventDate) validationErrors.push(["eventDate", "Выберите дату события."]);
-    else if (payload.eventDate < localToday) validationErrors.push(["eventDate", "Выберите сегодняшнюю или будущую дату."]);
-    if (!payload.city) validationErrors.push(["city", "Укажите город проведения."]);
-    if (!payload.venue) validationErrors.push(["venue", "Укажите площадку, адрес или напишите «Не выбрано»."]);
-    if (!payload.messenger) validationErrors.push(["messenger", "Выберите удобный мессенджер."]);
-
-    if (validationErrors.length) {
-      validationErrors.forEach(([name, message]) => {
-        const field = qs(`[name="${name}"]`, form);
-        const fieldError = qs(`#${name}-error`, form);
-        field.setAttribute("aria-invalid", "true");
-        fieldError.textContent = message;
-        fieldError.hidden = false;
-      });
-      error.textContent = "Проверьте выделенные поля — рядом с каждым указано, что исправить.";
-      error.hidden = false;
-      qs("[aria-invalid]", form)?.focus();
-      return;
-    }
-
-    error.hidden = true;
-    const button = qs('button[type="submit"]', form);
-    submitting = true;
-    button.disabled = true;
-    const submitLabel = store.mode === "local" ? "Сохранить заявку" : project.form.submitLabel;
-    button.textContent = store.mode === "local" ? "Сохраняем…" : "Отправляем…";
-
-    try {
-      await store.create("lead", payload, "new");
-      form.reset();
-      clearCart();
-      sessionStorage.setItem(SUCCESS_KEY, "1");
-      if (route() === "/") renderHome();
-      else location.hash = "#/";
-    } catch {
-      error.textContent = store.mode === "local"
-        ? "Не удалось сохранить заявку на устройстве. Данные остались в форме: освободите место в браузере и нажмите «Сохранить заявку» ещё раз."
-        : "Не удалось отправить заявку. Данные остались в форме — проверьте интернет и попробуйте ещё раз.";
-      error.hidden = false;
-      error.focus();
-    } finally {
-      submitting = false;
-      button.disabled = false;
-      button.textContent = submitLabel;
-    }
-  });
-
-  if (current !== "/request") qs("#request")?.remove();
-}
-
-function renderRequest() {
-  renderHome();
-  const main = qs("#main");
-  const request = qs("#request");
-  if (!main || !request) return;
-  [...main.children].forEach((section) => { if (section !== request) section.remove(); });
-  request.classList.add("request-page");
-  request.insertAdjacentHTML("afterbegin", `<div class="container request-back"><a class="back-link" href="#/cart">← Вернуться в корзину</a></div>`);
-  document.title = `Оформление заявки — ${project.name}`;
 }
 
 function floatingCart() {
@@ -486,8 +308,8 @@ function renderCatalog() {
               <div class="empty">
                 <span class="empty__symbol" aria-hidden="true">✦</span>
                 <h2>Для этого раздела пока нет готовых вариантов</h2>
-                <p>Расскажите нам о своём празднике — мы предложим оформление под вашу задачу.</p>
-                <a class="button" href="#/request?type=custom">Оставить заявку</a>
+                <p>Позвоните нам — обсудим праздник и предложим оформление под вашу задачу.</p>
+                <a class="button" href="${escapeHtml(project.phone.href)}">Позвонить ${escapeHtml(project.phone.display)}</a>
               </div>
             `}
           ` : `<div class="event-grid">${project.events.map(eventCard).join("")}${customEventCard()}</div>`}
@@ -612,7 +434,8 @@ function renderCart() {
             <div class="cart-list">
               ${cart.map((item) => `<article class="cart-item"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}: выбранное оформление"><div><p class="price">${escapeHtml(item.price)}</p><h2>${escapeHtml(item.name)}</h2><p>${escapeHtml(item.includes)}</p></div><button class="remove-cart button button--danger button--small" type="button" data-cart-id="${escapeHtml(item.id)}" aria-label="Удалить ${escapeHtml(item.name)} из корзины">Удалить вариант</button></article>`).join("")}
             </div>
-            <div class="actions"><a class="button" href="#/request">Перейти к оформлению</a><a class="button button--secondary" href="#/catalog">Выбрать ещё оформление</a></div>
+            ${callPanel()}
+            <div class="actions"><a class="button button--secondary" href="#/catalog">Выбрать ещё оформление</a></div>
           ` : `<div class="empty"><span class="empty__symbol" aria-hidden="true">✦</span><h2>Корзина пока пуста</h2><p>Выберите праздник в каталоге и добавьте понравившийся вариант.</p><a class="button" href="#/catalog">Открыть каталог</a></div>`}
         </div>
       </section>
@@ -766,7 +589,10 @@ async function render() {
   else if (current === "/variant") renderVariant();
   else if (current === "/cart") renderCart();
   else if (current === "/about") renderAbout();
-  else if (current === "/request") renderRequest();
+  else if (current === "/request") {
+    location.hash = "#/cart";
+    return;
+  }
   else if (current === "/styleguide") return renderStyleguide();
   else renderHome();
   mountFloatingCart();
