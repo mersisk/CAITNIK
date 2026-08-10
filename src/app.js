@@ -89,12 +89,12 @@ function eventCard(event) {
 
 function customEventCard() {
   return `
-    <a class="event-card event-card--custom card-link" href="${escapeHtml(project.phone.href)}" aria-label="Позвонить и обсудить другое событие">
+    <a class="event-card event-card--custom card-link" href="#/custom-event" aria-label="Открыть страницу другого события">
       <div class="event-card__symbol" aria-hidden="true">✦</div>
       <div class="event-card__body">
         <h3>Другое событие</h3>
-        <p>Корпоратив, выписка из роддома, помолвка или необычная идея — позвоните и расскажите, что нужно оформить.</p>
-        <span class="text-link">Позвонить ${escapeHtml(project.phone.display)} <span aria-hidden="true">→</span></span>
+        <p>Корпоратив, выписка из роддома, помолвка или необычная идея — расскажите, что нужно оформить.</p>
+        <span class="text-link">Обсудить другое событие <span aria-hidden="true">→</span></span>
       </div>
     </a>
   `;
@@ -143,8 +143,9 @@ function renderHome() {
             <p class="eyebrow">${escapeHtml(project.eyebrow)}</p>
             <h1>${escapeHtml(project.title)}</h1>
             <p class="lead">${escapeHtml(project.lead)}</p>
-            <div class="actions">
+            <div class="hero-primary-action">
               <a class="button" href="#/catalog">${escapeHtml(project.cta)}</a>
+              <a class="hero-phone-link" href="${escapeHtml(project.phone.href)}">Позвонить: ${escapeHtml(project.phone.display)}</a>
             </div>
           </div>
           <aside class="hero-photo panel">
@@ -264,6 +265,26 @@ function renderAbout() {
       <section class="section"><div class="container grid grid-3">${project.benefits.map((item) => `<article class="card detail-card"><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.text)}</p></article>`).join("")}</div></section>`,
   });
   bindCarousels();
+}
+
+function renderCustomEvent() {
+  renderShell({
+    title: `Другое событие — ${project.name}`,
+    nav: nav("/catalog"),
+    content: `
+      <section class="section page-intro">
+        <div class="container">
+          <a class="back-link" href="#/catalog">← Вернуться в каталог</a>
+          <p class="eyebrow">Другое событие</p>
+          <h1>Расскажите о празднике по телефону</h1>
+          <p class="lead">Если подходящего повода нет в каталоге, позвоните декоратору. Обсудим вашу идею, дату и подходящий вариант оформления.</p>
+        </div>
+      </section>
+      <section class="section section--soft">
+        <div class="container">${callPanel()}</div>
+      </section>
+    `,
+  });
 }
 
 function renderCatalog() {
@@ -589,6 +610,7 @@ async function render() {
   else if (current === "/variant") renderVariant();
   else if (current === "/cart") renderCart();
   else if (current === "/about") renderAbout();
+  else if (current === "/custom-event") renderCustomEvent();
   else if (current === "/request") {
     location.hash = "#/cart";
     return;
