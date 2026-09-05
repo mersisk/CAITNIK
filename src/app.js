@@ -327,7 +327,7 @@ function renderAbout() {
             <p class="lead">${escapeHtml(project.about.recentText)}</p>
             <a class="button button--secondary" href="#/catalog">Посмотреть каталог</a>
           </div>
-          ${carouselMarkup(project.recentWorks, "Последние работы Арт-деко", true, 4000)}
+          ${carouselMarkup(project.about.recentWorks, "Последние работы Арт-деко", true, 4000)}
         </div>
       </section>
 
