@@ -38,6 +38,12 @@ try {
   failures.push(`Хранилище: ${error.stderr?.toString() || error.message}`);
 }
 
+try {
+  execFileSync(process.execPath, ["--test", join(root, "server/app.test.mjs"), join(root, "server/max-bot.test.mjs")], { stdio: "pipe" });
+} catch (error) {
+  failures.push(`Backend API: ${error.stdout?.toString() || ""}${error.stderr?.toString() || error.message}`);
+}
+
 const secretPatterns = [
   /service[_-]?role\s*[:=]\s*["'][A-Za-z0-9._-]{20,}/i,
   /sb_secret_[A-Za-z0-9_-]{12,}/,
@@ -80,4 +86,5 @@ console.log("— синтаксис JavaScript");
 console.log("— обязательные файлы");
 console.log("— базовый поиск секретов");
 console.log("— локальный CRUD и публичная Supabase-вставка");
+console.log("— валидация, SQL, CORS, rate limiting и MAX-интеграция API");
 console.log("— запуск локального сайта\n");

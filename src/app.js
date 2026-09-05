@@ -106,7 +106,7 @@ function clearCart() {
   saveCart();
 }
 
-function callPanel() {
+function callPanel(requestHref = "#/request") {
   return `
     <aside class="call-panel panel" aria-labelledby="call-title">
       <div>
@@ -117,7 +117,7 @@ function callPanel() {
       <div class="call-panel__actions">
         <a class="phone-link" href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>
         <a class="button" href="${escapeHtml(project.phone.href)}">Позвонить сейчас</a>
-        <a class="button button--secondary" href="#/request">Заполнить данные заказа</a>
+        <a class="button button--secondary" href="${escapeHtml(requestHref)}">Заполнить данные заказа</a>
       </div>
     </aside>
   `;
@@ -376,7 +376,7 @@ function renderCustomEvent() {
         </div>
       </section>
       <section class="section section--soft">
-        <div class="container">${callPanel()}</div>
+        <div class="container">${callPanel("#/request?type=custom")}</div>
       </section>
     `,
   });
@@ -575,21 +575,43 @@ function renderCart() {
   });
 }
 
-function renderRequest(showSuccess = false) {
-  const customRequest = selectedParam("type") === "custom";
+function apiApplicationUrl() {
+  const base = String(window.AIRC_RUNTIME?.apiBaseUrl || "").replace(/\/$/, "");
+  return `${base}/api/applications`;
+}
+
+function splitFullName(value) {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  return { firstName: parts.shift() || "", lastName: parts.join(" ") };
+}
+
+function cartEventType() {
+  const titles = [];
+  for (const item of cart) {
+    const selectedPackage = project.packages.find((entry) => entry.id === item.packageId);
+    const eventTitle = project.events.find((entry) => entry.id === selectedPackage?.eventId)?.title;
+    if (eventTitle && !titles.includes(eventTitle)) titles.push(eventTitle);
+  }
+  return titles.join(", ");
+}
+
+function renderRequest(showSuccess = false, forcedOrderType = "") {
+  const customRequest = forcedOrderType
+    ? forcedOrderType === "custom"
+    : selectedParam("type") === "custom" || !cart.length;
   renderShell({
     title: `Оформление заказа — ${project.name}`,
     nav: nav("/request"),
     content: `
       <section class="section request-page">
-        <div class="container request-back"><a class="back-link" href="#/cart">← Вернуться в корзину</a></div>
+        <div class="container request-back"><a class="back-link" href="${customRequest ? "#/custom-event" : "#/cart"}">← ${customRequest ? "К выбору события" : "Вернуться в корзину"}</a></div>
         <div class="container grid grid-2 request-layout">
           <div>
             <p class="eyebrow">Карточка заказа</p>
             <h1>${customRequest ? "Расскажите о вашем событии" : escapeHtml(project.form.title)}</h1>
             <p class="lead">${customRequest ? "Укажите основные сведения о празднике — по ним будет проще обсудить идею и рассчитать оформление." : escapeHtml(project.form.note)}</p>
             ${cart.length ? `<p class="selection-note"><strong>Выбрано:</strong> ${cart.map((item) => escapeHtml(item.name)).join(", ")}</p>` : '<p class="selection-note">Готовый вариант можно не выбирать: опишите идею в поле «Пожелания».</p>'}
-            <p class="local-data-note">В этой версии карточка сохраняется только на вашем устройстве. Чтобы сразу связаться с декоратором, позвоните по номеру <a href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>.</p>
+            <p class="local-data-note">После отправки заявка сохранится на сервере. Если вопрос срочный, позвоните по номеру <a href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>.</p>
           </div>
           <form id="lead-form" class="panel stack" novalidate>
             <p class="form-required-note"><span aria-hidden="true">*</span> Обязательные поля</p>
@@ -599,13 +621,13 @@ function renderRequest(showSuccess = false) {
             <label><span class="field-label">Город <span class="required-mark" aria-hidden="true">*</span></span><input id="lead-city" name="city" autocomplete="address-level2" maxlength="100" aria-describedby="city-error" required><span id="city-error" class="field-error field-error--inline" hidden></span></label>
             <label><span class="field-label">Место проведения <span class="required-mark" aria-hidden="true">*</span></span><input id="lead-venue" name="venue" autocomplete="street-address" maxlength="200" placeholder="Название площадки или адрес" aria-describedby="venue-help venue-error" required><span id="venue-help" class="help">Если площадка ещё не выбрана, напишите «Не выбрано».</span><span id="venue-error" class="field-error field-error--inline" hidden></span></label>
             <label><span class="field-label">Удобный мессенджер <span class="required-mark" aria-hidden="true">*</span></span><select id="lead-messenger" name="messenger" aria-describedby="messenger-help messenger-error" required><option value="">Выберите мессенджер</option><option value="MAX">MAX</option><option value="Telegram">Telegram</option><option value="WhatsApp">WhatsApp</option></select><span id="messenger-help" class="help">Укажите, где вам удобнее получить ответ.</span><span id="messenger-error" class="field-error field-error--inline" hidden></span></label>
-            <label><span class="field-label">Пожелания <span class="muted">(необязательно)</span></span><textarea name="details" maxlength="1200" placeholder="Например: число гостей, цвета, стиль и особенности площадки"></textarea><span class="help">Расскажите всё, что важно учесть при оформлении.</span></label>
+            <label><span class="field-label">Пожелания ${customRequest ? '<span class="required-mark" aria-hidden="true">*</span>' : '<span class="muted">(необязательно)</span>'}</span><textarea name="details" maxlength="2000" placeholder="Например: число гостей, цвета, стиль и особенности площадки" ${customRequest ? "required" : ""} aria-describedby="details-help details-error"></textarea><span id="details-help" class="help">${customRequest ? "Опишите идею индивидуального оформления." : "Расскажите всё, что важно учесть при оформлении."}</span><span id="details-error" class="field-error field-error--inline" hidden></span></label>
             <p id="form-error" class="form-error-summary" role="alert" tabindex="-1" hidden></p>
-            <button class="button" type="submit">${store.mode === "local" ? "Сохранить данные заказа" : escapeHtml(project.form.submitLabel)}</button>
+            <button class="button" type="submit">${escapeHtml(project.form.submitLabel)}</button>
           </form>
         </div>
       </section>
-      ${showSuccess ? `<div class="modal-backdrop" role="presentation"><section class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-title"><button id="success-modal-close" class="modal-close" type="button" aria-label="Закрыть окно">×</button><p class="eyebrow">Карточка сохранена</p><h2 id="success-title">Данные заказа сохранены</h2><p>${store.mode === "local" ? "Они доступны только в этом браузере и пока не отправлены декоратору." : "Заявка отправлена. Декоратор свяжется с вами, чтобы уточнить детали."}</p><div class="actions"><a class="button" href="${escapeHtml(project.phone.href)}">Позвонить сейчас</a><a class="button button--secondary" href="#/">На главную</a></div></section></div>` : ""}
+      ${showSuccess ? `<div class="modal-backdrop" role="presentation"><section class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-title"><button id="success-modal-close" class="modal-close" type="button" aria-label="Закрыть окно">×</button><p class="eyebrow">Заявка принята</p><h2 id="success-title">Спасибо! Заявка сохранена</h2><p>Декоратор свяжется с вами, чтобы уточнить детали оформления.</p><div class="actions"><a class="button" href="${escapeHtml(project.phone.href)}">Позвонить сейчас</a><a class="button button--secondary" href="#/">На главную</a></div></section></div>` : ""}
     `,
   });
 
@@ -627,43 +649,46 @@ function renderRequest(showSuccess = false) {
   qsa("input, select, textarea", form).forEach((field) => field.addEventListener(field.tagName === "SELECT" ? "change" : "input", () => clearFieldError(field)));
 
   let submitting = false;
-  const submissionId = crypto.randomUUID();
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (submitting) return;
     const data = new FormData(form);
     const details = String(data.get("details") || "").trim();
-    const selectedNames = cart.map((item) => item.name).join(", ");
+    const fullName = String(data.get("name") || "").trim();
+    const { firstName, lastName } = splitFullName(fullName);
+    const orderType = customRequest ? "custom" : "catalog";
     const payload = {
-      submissionId,
-      name: String(data.get("name") || "").trim(),
-      contact: String(data.get("contact") || "").trim(),
-      eventDate: String(data.get("eventDate") || ""),
+      first_name: firstName,
+      last_name: lastName,
+      phone: String(data.get("contact") || "").trim(),
+      event_date: String(data.get("eventDate") || ""),
       city: String(data.get("city") || "").trim(),
       venue: String(data.get("venue") || "").trim(),
       messenger: String(data.get("messenger") || ""),
-      details,
-      selectedVariants: cart.map(({ id, name, price }) => ({ id, name, price })),
-      problem: `${selectedNames ? `Выбрано: ${selectedNames}. ` : ""}${details}`.trim(),
+      event_type: customRequest ? "Индивидуальное оформление" : cartEventType(),
+      order_type: orderType,
+      wishes: details,
+      cart_items: customRequest ? [] : cart.map(({ id, name, price }) => ({ id, name, price, quantity: 1 })),
     };
     const summary = qs("#form-error", form);
     qsa("[aria-invalid]", form).forEach(clearFieldError);
     summary.hidden = true;
     const errors = [];
-    if (payload.name.length < 2) errors.push(["name", "Введите имя — не меньше 2 символов."]);
-    if (payload.contact.replace(/\D/g, "").length < 5) errors.push(["contact", "Укажите номер телефона — не меньше 5 цифр."]);
-    if (!payload.eventDate) errors.push(["eventDate", "Выберите дату события."]);
-    else if (payload.eventDate < localToday) errors.push(["eventDate", "Выберите сегодняшнюю или будущую дату."]);
+    if (!payload.first_name || !payload.last_name) errors.push(["name", "Введите имя и фамилию через пробел."]);
+    if (payload.phone.replace(/\D/g, "").length < 10) errors.push(["contact", "Укажите номер телефона — не меньше 10 цифр."]);
+    if (!payload.event_date) errors.push(["eventDate", "Выберите дату события."]);
+    else if (payload.event_date < localToday) errors.push(["eventDate", "Выберите сегодняшнюю или будущую дату."]);
     if (!payload.city) errors.push(["city", "Укажите город проведения."]);
     if (!payload.venue) errors.push(["venue", "Укажите площадку, адрес или напишите «Не выбрано»."]);
     if (!payload.messenger) errors.push(["messenger", "Выберите удобный мессенджер."]);
+    if (!customRequest && !payload.cart_items.length) errors.push(["cart_items", "Добавьте хотя бы одну позицию из каталога."]);
+    if (customRequest && !payload.wishes) errors.push(["details", "Опишите идею индивидуального оформления."]);
     if (errors.length) {
       errors.forEach(([name, message]) => {
         const field = qs(`[name="${name}"]`, form);
         const fieldError = qs(`#${name}-error`, form);
-        field.setAttribute("aria-invalid", "true");
-        fieldError.textContent = message;
-        fieldError.hidden = false;
+        if (field) field.setAttribute("aria-invalid", "true");
+        if (fieldError) { fieldError.textContent = message; fieldError.hidden = false; }
       });
       summary.textContent = "Проверьте выделенные поля — рядом указано, что исправить.";
       summary.hidden = false;
@@ -675,13 +700,22 @@ function renderRequest(showSuccess = false) {
     const submitLabel = button.textContent;
     submitting = true;
     button.disabled = true;
-    button.textContent = store.mode === "local" ? "Сохраняем…" : "Отправляем…";
+    button.textContent = "Отправляем…";
     try {
-      await store.create("lead", payload, "new");
+      const response = await fetch(apiApplicationUrl(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.success !== true) {
+        const serverMessage = result.error || Object.values(result.errors || {})[0];
+        throw new Error(serverMessage || "Сервер не принял заявку.");
+      }
       clearCart();
-      renderRequest(true);
-    } catch {
-      summary.textContent = store.mode === "local" ? "Не удалось сохранить карточку. Данные остались в форме — освободите место в браузере и попробуйте ещё раз." : "Не удалось отправить заявку. Проверьте интернет и попробуйте ещё раз.";
+      renderRequest(true, orderType);
+    } catch (error) {
+      summary.textContent = `${error instanceof Error ? error.message : "Не удалось отправить заявку."} Данные и корзина сохранены — попробуйте ещё раз.`;
       summary.hidden = false;
       summary.focus();
       submitting = false;

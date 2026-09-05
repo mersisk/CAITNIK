@@ -21,6 +21,7 @@ if (/[А-Яа-яЁё]/.test(projectRoot)) {
 }
 
 console.log("\nСледующие команды:");
-console.log("1. npm run dev");
-console.log("2. открой http://127.0.0.1:4173");
-console.log("3. npm run check перед коммитом\n");
+console.log("1. npm ci");
+console.log("2. npm run api:dev и npm run dev в двух терминалах");
+console.log("3. открой http://127.0.0.1:4173");
+console.log("4. npm run check перед коммитом\n");

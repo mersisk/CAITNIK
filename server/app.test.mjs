@@ -1,0 +1,186 @@
+import assert from "node:assert/strict";
+import { afterEach, test } from "node:test";
+import { createApp } from "./app.mjs";
+
+const servers = [];
+afterEach(async () => {
+  await Promise.all(servers.splice(0).map((server) => new Promise((resolve) => server.close(resolve))));
+});
+
+async function startApi(options = {}) {
+  const calls = [];
+  const maxCalls = [];
+  const pool = options.pool || {
+    async query(sql, values) {
+      calls.push({ sql, values });
+      return { rows: [{ id: 123 }] };
+    },
+  };
+  const logger = { warn() {}, error() {} };
+  const app = createApp({
+    pool,
+    logger,
+    siteOrigin: "https://artdeco-vl.ru",
+    sendToMax: options.sendToMax || (async (application) => { maxCalls.push(application); return { sent: true }; }),
+    rateLimitOptions: options.rateLimitOptions,
+  });
+  const server = await new Promise((resolve) => {
+    const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
+  });
+  servers.push(server);
+  return { url: `http://127.0.0.1:${server.address().port}`, calls, maxCalls };
+}
+
+function validCatalogApplication() {
+  return {
+    first_name: "Иван",
+    last_name: "Иванов",
+    phone: "8 (999) 123-45-67",
+    event_date: "2099-10-20",
+    city: "Владивосток",
+    venue: "Банкетный зал",
+    messenger: "MAX",
+    event_type: "Романтический вечер",
+    order_type: "catalog",
+    wishes: "Тёплый свет",
+    cart_items: [{ id: "romantic-table-candles", name: "Подменённое имя", price: "1 ₽", quantity: 1 }],
+  };
+}
+
+test("catalog: сохраняет канонические позиции параметризованным SQL и вызывает MAX", async () => {
+  const api = await startApi();
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: "https://artdeco-vl.ru" },
+    body: JSON.stringify(validCatalogApplication()),
+  });
+  assert.equal(response.status, 201);
+  assert.deepEqual(await response.json(), { success: true, id: 123 });
+  assert.equal(api.calls.length, 1);
+  assert.match(api.calls[0].sql, /VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11::jsonb\)/);
+  const savedCart = JSON.parse(api.calls[0].values[10]);
+  assert.deepEqual(savedCart, [{ id: "romantic-table-candles", name: "Вечер при свечах", price: "от 5 560 ₽", quantity: 1 }]);
+  assert.equal(api.calls[0].values[2], "+79991234567");
+  assert.equal(api.maxCalls[0].id, 123);
+});
+
+test("custom: требует wishes и пустую корзину", async () => {
+  const api = await startApi();
+  const application = validCatalogApplication();
+  application.order_type = "custom";
+  application.event_type = "Индивидуальное оформление";
+  application.wishes = "";
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(application),
+  });
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal(body.success, false);
+  assert.ok(body.errors.wishes);
+  assert.ok(body.errors.cart_items);
+  assert.equal(api.calls.length, 0);
+});
+
+test("custom: принимает обязательную идею с пустой корзиной", async () => {
+  const api = await startApi();
+  const application = validCatalogApplication();
+  application.order_type = "custom";
+  application.event_type = "Индивидуальное оформление";
+  application.wishes = "Цветочная арка у моря";
+  application.cart_items = [];
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(application),
+  });
+  assert.equal(response.status, 201);
+  assert.equal(api.calls[0].values[8], "custom");
+  assert.deepEqual(JSON.parse(api.calls[0].values[10]), []);
+});
+
+test("проверяет формат и давность даты", async () => {
+  const api = await startApi();
+  for (const eventDate of ["2026-02-30", "2000-01-01", "20.10.2099"]) {
+    const application = validCatalogApplication();
+    application.event_date = eventDate;
+    const response = await fetch(`${api.url}/api/applications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(application),
+    });
+    assert.equal(response.status, 400);
+    assert.ok((await response.json()).errors.event_date);
+  }
+});
+
+test("не принимает неизвестную позицию каталога", async () => {
+  const api = await startApi();
+  const application = validCatalogApplication();
+  application.cart_items = [{ id: "unknown", name: "Неизвестно", price: "0 ₽", quantity: 1 }];
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(application),
+  });
+  assert.equal(response.status, 400);
+  assert.ok((await response.json()).errors.cart_items);
+});
+
+test("CORS разрешает production и localhost, но отклоняет чужой origin", async () => {
+  const api = await startApi();
+  const health = await fetch(`${api.url}/api/health`, { headers: { Origin: "http://localhost:4173" } });
+  assert.equal(health.status, 200);
+  assert.equal(health.headers.get("access-control-allow-origin"), "http://localhost:4173");
+  const denied = await fetch(`${api.url}/api/health`, { headers: { Origin: "https://evil.example" } });
+  assert.equal(denied.status, 403);
+});
+
+test("ограничивает JSON body размером 16 КБ", async () => {
+  const api = await startApi();
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ wishes: "x".repeat(17 * 1024) }),
+  });
+  assert.equal(response.status, 413);
+});
+
+test("rate limit ограничивает число заявок с одного IP", async () => {
+  const api = await startApi({ rateLimitOptions: { limit: 2, windowMs: 60_000 } });
+  const send = () => fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(validCatalogApplication()),
+  });
+  assert.equal((await send()).status, 201);
+  assert.equal((await send()).status, 201);
+  const blocked = await send();
+  assert.equal(blocked.status, 429);
+  assert.equal((await blocked.json()).success, false);
+});
+
+test("ошибка PostgreSQL не раскрывается клиенту", async () => {
+  const api = await startApi({ pool: { query: async () => { throw Object.assign(new Error("secret SQL detail"), { code: "XX000" }); } } });
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(validCatalogApplication()),
+  });
+  assert.equal(response.status, 500);
+  const body = await response.json();
+  assert.equal(JSON.stringify(body).includes("secret SQL detail"), false);
+});
+
+test("сбой MAX не отменяет сохранённую заявку", async () => {
+  const api = await startApi({ sendToMax: async () => { throw new Error("MAX unavailable"); } });
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(validCatalogApplication()),
+  });
+  assert.equal(response.status, 201);
+  assert.deepEqual(await response.json(), { success: true, id: 123 });
+  assert.equal(api.calls.length, 1);
+});
