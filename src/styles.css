@@ -426,6 +426,11 @@ textarea { min-height: 120px; resize: vertical; }
 .company-geography { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
 .company-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px 24px; }
 .company-actions .text-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; }
+.button--company { position: relative; isolation: isolate; overflow: hidden; border-color: rgba(111,83,29,.42); background: linear-gradient(145deg, #fffdf9, #e9dfcb); color: var(--text); box-shadow: 0 5px 0 #a48547, 0 13px 26px rgba(46,37,24,.15); animation: company-button-glow 3s ease-in-out infinite; }
+.button--company::before { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,.9) 45%, transparent 70%); transform: translateX(-120%); transition: transform .55s ease; }
+.button--company:hover { border-color: var(--accent); background: linear-gradient(145deg, #fff, #e6d5b4); color: var(--text); box-shadow: 0 7px 0 #8b6b2e, 0 18px 34px rgba(46,37,24,.2); transform: translateY(-3px); }
+.button--company:hover::before, .button--company:focus-visible::before { transform: translateX(120%); }
+.button--company:active { box-shadow: 0 2px 0 #8b6b2e, 0 7px 15px rgba(46,37,24,.16); transform: translateY(3px); }
 .home-works { min-width: 0; }
 .home-works__heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
 .home-works__heading h2 { margin: 0; font-size: 25px; }
@@ -435,21 +440,58 @@ textarea { min-height: 120px; resize: vertical; }
 .home-works figcaption span:last-child { flex-shrink: 0; color: #e6d6b8; }
 .home-works .carousel__controls { padding-top: 8px; flex-wrap: wrap; gap: 0 16px; }
 
+.about-hero { padding-top: 32px; }
+.about-hero__grid { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(0, 1.2fr); align-items: center; gap: clamp(32px, 6vw, 84px); }
+.about-decorator-photo { position: relative; min-height: 560px; margin: 0; overflow: hidden; border: 1px solid rgba(155,122,56,.34); border-radius: 180px 180px var(--radius-md) var(--radius-md); background: var(--surface-soft); box-shadow: var(--shadow); }
+.about-decorator-photo img { width: 100%; height: 560px; object-fit: cover; object-position: center 30%; }
+.about-decorator-photo figcaption { position: absolute; right: 16px; bottom: 16px; left: 16px; padding: 13px 16px; border: 1px solid rgba(195,161,91,.3); border-radius: var(--radius-control); background: rgba(24,24,22,.8); color: white; font-size: 13px; backdrop-filter: blur(8px); }
+.about-hero__copy h1 { max-width: 650px; }
+.about-hero__copy .lead { margin-bottom: 0; }
+.about-recent__grid { display: grid; grid-template-columns: minmax(250px, .7fr) minmax(0, 1.3fr); align-items: center; gap: clamp(30px, 5vw, 64px); }
+.about-section-copy .lead { font-size: 18px; }
+.about-section-copy .button { margin-top: 14px; }
+.about-recent .carousel__viewport { min-height: 0; aspect-ratio: 4 / 3; }
+.about-general__heading { max-width: 720px; margin-bottom: 26px; }
+.about-general__grid { display: grid; grid-template-columns: minmax(260px, .65fr) minmax(0, 1.35fr); align-items: start; gap: clamp(30px, 5vw, 60px); }
+.about-general__copy { padding: clamp(22px, 3vw, 34px); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow); }
+.about-general__copy p:first-child { margin-top: 0; }
+.about-general__copy .company-experience { margin-top: 26px; }
+.about-work-grid { display: grid; grid-template-columns: 1.2fr .8fr; grid-template-rows: repeat(2, 220px); gap: 14px; }
+.about-work-grid figure { position: relative; margin: 0; overflow: hidden; border: 1px solid rgba(155,122,56,.24); border-radius: var(--radius-md); box-shadow: var(--shadow); }
+.about-work-grid figure:first-child { grid-row: span 2; }
+.about-work-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease; }
+.about-work-grid figure:hover img { transform: scale(1.035); }
+.about-work-grid figcaption { position: absolute; right: 10px; bottom: 10px; left: 10px; padding: 8px 10px; border-radius: 8px; background: rgba(24,24,22,.75); color: white; font-size: 12px; backdrop-filter: blur(6px); }
+
+@keyframes company-button-glow {
+  0%, 100% { box-shadow: 0 5px 0 #a48547, 0 13px 26px rgba(46,37,24,.15); }
+  50% { box-shadow: 0 5px 0 #a48547, 0 17px 34px rgba(155,122,56,.28); }
+}
+
 @media (max-width: 780px) {
   .company-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .company-intro h1 { max-width: 620px; }
   .home-works .carousel__viewport { aspect-ratio: 4 / 3; border-top-left-radius: 64px; }
+  .about-hero__grid, .about-recent__grid, .about-general__grid { grid-template-columns: minmax(0, 1fr); }
+  .about-decorator-photo, .about-decorator-photo img { min-height: 500px; height: 500px; }
+  .about-decorator-photo { width: min(100%, 520px); margin-inline: auto; }
 }
 
 @media (max-width: 480px) {
   .company-actions { width: 100%; gap: 6px; }
+  .company-actions .button { width: 100%; }
   .home-works .carousel__viewport { aspect-ratio: 1 / 1; border-top-left-radius: 48px; }
   .home-works .carousel__slide figcaption { font-size: 12px; }
+  .about-decorator-photo, .about-decorator-photo img { min-height: 430px; height: 430px; }
+  .about-decorator-photo { border-radius: 120px 120px var(--radius-md) var(--radius-md); }
+  .about-work-grid { grid-template-columns: 1fr; grid-template-rows: repeat(3, 260px); }
+  .about-work-grid figure:first-child { grid-row: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
   .button:hover { transform: none; }
+  .button--company { animation: none; }
   .card-link:hover, .card-link:focus-visible, .card-link:hover img, .back-link:hover, .floating-cart:hover, .detail-card:hover, .card:hover, .variant-card:hover, .hero-contact:hover, .brand:hover .brand-mark { transform: none; }
 }
 

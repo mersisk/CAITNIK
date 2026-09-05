@@ -39,7 +39,7 @@ function saveCart() {
 
 const nav = (active) => [
   { href: "#/", label: "Главная", active: active === "/" },
-  { href: "#/about", label: "О нас", active: active === "/about" },
+  { href: "#/about", label: "О компании", active: active === "/about" },
   { href: "#/catalog", label: "Каталог", active: active === "/catalog" },
   { href: "#/cart", label: `Корзина${cart.length ? ` · ${cart.length}` : ""}`, active: active === "/cart" },
 ];
@@ -147,7 +147,7 @@ function renderHome() {
             <div class="hero-primary-action">
               <div class="company-actions">
                 <a class="button" href="#/catalog">${escapeHtml(project.cta)}</a>
-                <a class="text-link" href="#/about">О компании <span aria-hidden="true">→</span></a>
+                <a class="button button--company" href="#/about">О компании <span aria-hidden="true">→</span></a>
               </div>
               <a class="hero-contact" href="${escapeHtml(project.phone.href)}">
                 <span class="hero-contact__symbol" aria-hidden="true">✦</span>
@@ -170,7 +170,7 @@ function renderHome() {
       <section id="about" class="section section--soft">
         <div class="container">
           <div class="section-heading">
-            <div><p class="eyebrow">О нас</p><h2>Оформление праздника — в одних руках</h2></div>
+            <div><p class="eyebrow">О компании</p><h2>Оформление праздника — в одних руках</h2></div>
           </div>
           <div class="grid grid-3">
             ${project.benefits.map((item) => `
@@ -180,7 +180,7 @@ function renderHome() {
               </article>
             `).join("")}
           </div>
-          <div class="actions"><a class="button button--secondary" href="#/about">Подробнее о нас</a></div>
+          <div class="actions"><a class="button button--secondary" href="#/about">Подробнее о компании</a></div>
         </div>
       </section>
 
@@ -299,11 +299,57 @@ function bindCarousels() {
 
 function renderAbout() {
   renderShell({
-    title: `О нас — ${project.name}`,
+    title: `О компании — ${project.name}`,
     nav: nav("/about"),
-    content: `<section class="section page-intro"><div class="container"><a class="back-link" href="#/">← На главную</a><p class="eyebrow">О компании</p><h1>Создаём оформление, которое собирает праздник в одно целое</h1><p class="lead">Здесь появится история «Арт-деко», опыт команды и фотографии настоящих проектов. Текст можно заменить, когда вы подготовите информацию о компании.</p></div></section>
-      <section class="section section--soft"><div class="container">${carouselMarkup(project.events.slice(0, 8).map((event) => event.image), "Работы Арт-деко", true)}</div></section>
-      <section class="section"><div class="container grid grid-3">${project.benefits.map((item) => `<article class="card detail-card"><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.text)}</p></article>`).join("")}</div></section>`,
+    content: `
+      <section class="section about-hero page-intro">
+        <div class="container">
+          <a class="back-link" href="#/">← На главную</a>
+          <div class="about-hero__grid">
+            <figure class="about-decorator-photo">
+              <img src="${escapeHtml(project.about.decoratorPhoto)}" alt="${escapeHtml(project.about.decoratorPhotoAlt)}">
+              <figcaption>Декоратор «Арт-деко»</figcaption>
+            </figure>
+            <div class="about-hero__copy">
+              <p class="eyebrow">${escapeHtml(project.about.decoratorEyebrow)}</p>
+              <h1>${escapeHtml(project.about.decoratorTitle)}</h1>
+              <p class="lead">${escapeHtml(project.about.decoratorText)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--soft about-recent" aria-labelledby="recent-work-title">
+        <div class="container about-recent__grid">
+          <div class="about-section-copy">
+            <p class="eyebrow">Новые проекты</p>
+            <h2 id="recent-work-title">${escapeHtml(project.about.recentTitle)}</h2>
+            <p class="lead">${escapeHtml(project.about.recentText)}</p>
+            <a class="button button--secondary" href="#/catalog">Посмотреть каталог</a>
+          </div>
+          ${carouselMarkup(project.recentWorks, "Последние работы Арт-деко", true, 4000)}
+        </div>
+      </section>
+
+      <section class="section about-general" aria-labelledby="company-info-title">
+        <div class="container">
+          <div class="about-general__heading">
+            <p class="eyebrow">Арт-деко</p>
+            <h2 id="company-info-title">${escapeHtml(project.about.generalTitle)}</h2>
+          </div>
+          <div class="about-general__grid">
+            <div class="about-general__copy">
+              ${project.about.generalText.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+              <div class="company-experience"><span aria-hidden="true">✦</span> ${escapeHtml(project.company.experience)}</div>
+              <p class="company-geography">${escapeHtml(project.company.geography)}</p>
+            </div>
+            <div class="about-work-grid" aria-label="Примеры работ компании">
+              ${project.about.gallery.map((photo) => `<figure><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt)}" loading="lazy"><figcaption>${escapeHtml(photo.caption)}</figcaption></figure>`).join("")}
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
   });
   bindCarousels();
 }
