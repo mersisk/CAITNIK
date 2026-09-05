@@ -417,6 +417,36 @@ textarea { min-height: 120px; resize: vertical; }
   .hero-contact__symbol { width: 36px; height: 36px; }
 }
 
+.hero--company { padding: clamp(28px, 5vw, 64px) 0 48px; }
+.company-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; gap: clamp(28px, 4vw, 60px); }
+.company-intro h1 { max-width: 560px; font-size: clamp(36px, 4.1vw, 58px); line-height: 1.08; }
+.company-intro .lead { margin: 22px 0; font-size: clamp(17px, 1.5vw, 19px); }
+.company-experience { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; }
+.company-experience span { color: var(--accent); font-size: 22px; }
+.company-geography { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
+.company-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px 24px; }
+.company-actions .text-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; }
+.home-works { min-width: 0; }
+.home-works__heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+.home-works__heading h2 { margin: 0; font-size: 25px; }
+.home-works__heading > span { color: var(--muted); font-size: 12px; }
+.home-works .carousel__viewport { min-height: 0; aspect-ratio: 1 / 1.04; border-radius: 100px 14px 14px 14px; }
+.home-works .carousel__slide figcaption { inset: auto 12px 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-radius: 10px; padding: 12px 14px; }
+.home-works figcaption span:last-child { flex-shrink: 0; color: #e6d6b8; }
+.home-works .carousel__controls { padding-top: 8px; flex-wrap: wrap; gap: 0 16px; }
+
+@media (max-width: 780px) {
+  .company-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .company-intro h1 { max-width: 620px; }
+  .home-works .carousel__viewport { aspect-ratio: 4 / 3; border-top-left-radius: 64px; }
+}
+
+@media (max-width: 480px) {
+  .company-actions { width: 100%; gap: 6px; }
+  .home-works .carousel__viewport { aspect-ratio: 1 / 1; border-top-left-radius: 48px; }
+  .home-works .carousel__slide figcaption { font-size: 12px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
   .button:hover { transform: none; }

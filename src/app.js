@@ -136,15 +136,19 @@ function renderHome() {
     title: `${project.name} — ${project.title}`,
     nav: nav(current),
     content: `
-      <section class="hero hero--decor">
-        <div class="container hero-grid">
-          <div>
-            <div class="hero-logo" role="img" aria-label="Арт-деко"></div>
-            <p class="eyebrow">${escapeHtml(project.eyebrow)}</p>
-            <h1>${escapeHtml(project.title)}</h1>
-            <p class="lead">${escapeHtml(project.lead)}</p>
+      <section class="hero hero--company" aria-labelledby="home-title">
+        <div class="container company-grid">
+          <div class="company-intro">
+            <p class="eyebrow">Знакомьтесь, Арт-деко</p>
+            <h1 id="home-title">${escapeHtml(project.company.title)}</h1>
+            <p class="lead">${escapeHtml(project.company.description)}</p>
+            <div class="company-experience"><span aria-hidden="true">✦</span> ${escapeHtml(project.company.experience)}</div>
+            <p class="company-geography">${escapeHtml(project.company.geography)}</p>
             <div class="hero-primary-action">
-              <a class="button" href="#/catalog">${escapeHtml(project.cta)}</a>
+              <div class="company-actions">
+                <a class="button" href="#/catalog">${escapeHtml(project.cta)}</a>
+                <a class="text-link" href="#/about">О компании <span aria-hidden="true">→</span></a>
+              </div>
               <a class="hero-contact" href="${escapeHtml(project.phone.href)}">
                 <span class="hero-contact__symbol" aria-hidden="true">✦</span>
                 <span class="hero-contact__text">
@@ -154,10 +158,10 @@ function renderHome() {
               </a>
             </div>
           </div>
-          <aside class="hero-photo panel">
-            <img src="${escapeHtml(project.events[0].image)}" alt="Праздничный декор Арт-деко">
-            <div class="hero-photo__caption"><span>Арт-деко</span><strong>Ваш праздник — наша деталь</strong></div>
-          </aside>
+          <section class="home-works" aria-labelledby="home-works-title">
+            <div class="home-works__heading"><h2 id="home-works-title">Недавние работы</h2><span>Сделано с любовью</span></div>
+            ${carouselMarkup(project.recentWorks, "Недавние работы Арт-деко", true, 4000)}
+          </section>
         </div>
       </section>
 
@@ -197,6 +201,7 @@ function renderHome() {
 
     `,
   });
+  bindCarousels();
 
 }
 
@@ -218,10 +223,13 @@ function renderMissingPage(title, message) {
   });
 }
 
-function carouselMarkup(images, label, autoplay = false) {
-  return `<div class="carousel" data-carousel data-autoplay="${autoplay}" aria-label="${escapeHtml(label)}">
-    <div class="carousel__viewport" aria-live="polite">
-      ${images.map((image, index) => `<figure class="carousel__slide" ${index ? "hidden" : ""} data-slide><img src="${escapeHtml(image)}" alt="${escapeHtml(label)}, фотография ${index + 1}"><figcaption>${index + 1} из ${images.length}</figcaption></figure>`).join("")}
+function carouselMarkup(images, label, autoplay = false, interval = 4500) {
+  return `<div class="carousel" data-carousel data-autoplay="${autoplay}" data-interval="${interval}" role="region" aria-roledescription="карусель" aria-label="${escapeHtml(label)}">
+    <div class="carousel__viewport" aria-live="${autoplay ? "off" : "polite"}">
+      ${images.map((image, index) => {
+        const photo = typeof image === "string" ? { src: image, alt: `${label}, фотография ${index + 1}` } : image;
+        return `<figure class="carousel__slide" ${index ? "hidden" : ""} data-slide role="group" aria-roledescription="слайд" aria-label="${index + 1} из ${images.length}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt)}" decoding="async" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><figcaption>${photo.caption ? `<span>${escapeHtml(photo.caption)}</span>` : ""}<span>${index + 1} из ${images.length}</span></figcaption></figure>`;
+      }).join("")}
       <button class="carousel__arrow carousel__arrow--prev" type="button" data-carousel-prev aria-label="Предыдущая фотография">←</button>
       <button class="carousel__arrow carousel__arrow--next" type="button" data-carousel-next aria-label="Следующая фотография">→</button>
     </div>
@@ -229,37 +237,64 @@ function carouselMarkup(images, label, autoplay = false) {
   </div>`;
 }
 
+let disposeCarousels = () => {};
+
 function bindCarousels() {
+  disposeCarousels();
+  const listeners = new AbortController();
+  const options = { signal: listeners.signal };
+  const cleanups = [];
   qsa("[data-carousel]").forEach((carousel) => {
     const slides = qsa("[data-slide]", carousel);
     const dots = qsa("[data-carousel-dot]", carousel);
+    if (!slides.length) return;
+    const viewport = qs(".carousel__viewport", carousel);
+    const pauseButton = qs("[data-carousel-pause]", carousel);
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const autoplay = carousel.dataset.autoplay === "true" && slides.length > 1;
     let active = 0;
     let timer;
+    let paused = motion.matches;
+    let hovered = false;
+    const stop = () => window.clearInterval(timer);
     const show = (index) => {
       active = (index + slides.length) % slides.length;
       slides.forEach((slide, slideIndex) => { slide.hidden = slideIndex !== active; });
-      dots.forEach((dot, dotIndex) => dot.toggleAttribute("aria-current", dotIndex === active));
-    };
-    const stop = () => window.clearInterval(timer);
-    const start = () => { stop(); timer = window.setInterval(() => show(active + 1), 4500); };
-    qs("[data-carousel-prev]", carousel)?.addEventListener("click", () => show(active - 1));
-    qs("[data-carousel-next]", carousel)?.addEventListener("click", () => show(active + 1));
-    dots.forEach((dot) => dot.addEventListener("click", () => show(Number(dot.dataset.carouselDot))));
-    const pauseButton = qs("[data-carousel-pause]", carousel);
-    if (carousel.dataset.autoplay === "true" && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      start();
-      carousel.addEventListener("pointerenter", stop);
-      carousel.addEventListener("focusin", stop);
-      pauseButton?.addEventListener("click", (event) => {
-        const paused = event.currentTarget.textContent === "Продолжить";
-        if (paused) { start(); event.currentTarget.textContent = "Пауза"; }
-        else { stop(); event.currentTarget.textContent = "Продолжить"; }
+      dots.forEach((dot, dotIndex) => {
+        if (dotIndex === active) dot.setAttribute("aria-current", "true");
+        else dot.removeAttribute("aria-current");
       });
-    } else if (pauseButton) {
-      pauseButton.textContent = "Автопрокрутка выключена";
-      pauseButton.disabled = true;
+      // Load the next photograph before its turn, including on a slow connection.
+      qs("img", slides[(active + 1) % slides.length]).loading = "eager";
+    };
+    const sync = () => {
+      stop();
+      const running = autoplay && !paused && !hovered && !document.hidden;
+      viewport.setAttribute("aria-live", running ? "off" : "polite");
+      if (pauseButton) pauseButton.textContent = paused ? "Продолжить" : "Пауза";
+      if (running) timer = window.setInterval(() => show(active + 1), Number(carousel.dataset.interval));
+    };
+    const select = (index) => { show(index); sync(); };
+    qs("[data-carousel-prev]", carousel)?.addEventListener("click", () => select(active - 1), options);
+    qs("[data-carousel-next]", carousel)?.addEventListener("click", () => select(active + 1), options);
+    dots.forEach((dot) => dot.addEventListener("click", () => select(Number(dot.dataset.carouselDot)), options));
+    if (autoplay) {
+      carousel.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "mouse") { hovered = true; sync(); }
+      }, options);
+      carousel.addEventListener("pointerleave", () => { hovered = false; sync(); }, options);
+      carousel.addEventListener("focusin", (event) => {
+        if (!carousel.contains(event.relatedTarget) && event.target !== pauseButton) { paused = true; sync(); }
+      }, options);
+      pauseButton?.addEventListener("click", () => { paused = !paused; sync(); }, options);
+      document.addEventListener("visibilitychange", sync, options);
+      motion.addEventListener("change", () => { paused = motion.matches; sync(); }, options);
     }
+    show(0);
+    sync();
+    cleanups.push(stop);
   });
+  disposeCarousels = () => { listeners.abort(); cleanups.forEach((stop) => stop()); };
 }
 
 function renderAbout() {
@@ -608,6 +643,7 @@ async function renderWorkspace() {
 }
 
 async function render() {
+  disposeCarousels();
   const current = route();
   window.scrollTo(0, 0);
   if (current === "/workspace") return renderWorkspace();
