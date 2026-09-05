@@ -11,7 +11,7 @@ function socialIcon(id) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4 3.8 10.6c-1.2.5-1.2 1.2-.2 1.5l4.4 1.4 1.7 5.1c.2.7.1 1 .9 1 .6 0 .9-.3 1.2-.6l2.1-2 4.5 3.3c.8.5 1.4.2 1.6-.8L23 5.4C23.3 4.2 22.5 3.6 21 4Z"></path><path d="m9 13.2 9.3-5.8" class="social-icon__line"></path></svg>`;
 }
 
-function renderSocials() {
+export function renderSocials() {
   return project.socials.map((social) => {
     const content = `${socialIcon(social.id)}<span>${escapeHtml(social.label)}</span>`;
     if (!social.url) return `<span class="social-link social-link--pending" title="Ссылка будет добавлена" aria-label="${escapeHtml(social.label)}: ссылка будет добавлена">${content}</span>`;

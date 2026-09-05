@@ -8,6 +8,7 @@ import {
   qsa,
   renderLogin,
   renderShell,
+  renderSocials,
   route,
   setNotice,
   statusLabel,
@@ -162,6 +163,10 @@ function renderHome() {
                   <strong>${escapeHtml(project.phone.display)}</strong>
                 </span>
               </a>
+              <div class="hero-socials">
+                <span>Мы в соцсетях</span>
+                <div class="social-links social-links--hero" aria-label="Социальные сети Арт-деко">${renderSocials()}</div>
+              </div>
             </div>
           </div>
           <section class="home-works" aria-labelledby="home-works-title">
