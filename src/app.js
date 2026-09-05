@@ -100,6 +100,11 @@ function customEventCard() {
   `;
 }
 
+function clearCart() {
+  cart.splice(0, cart.length);
+  saveCart();
+}
+
 function callPanel() {
   return `
     <aside class="call-panel panel" aria-labelledby="call-title">
@@ -111,6 +116,7 @@ function callPanel() {
       <div class="call-panel__actions">
         <a class="phone-link" href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>
         <a class="button" href="${escapeHtml(project.phone.href)}">Позвонить сейчас</a>
+        <a class="button button--secondary" href="#/request">Заполнить данные заказа</a>
       </div>
     </aside>
   `;
@@ -211,7 +217,7 @@ function floatingCart() {
 
 function mountFloatingCart() {
   qs(".floating-cart")?.remove();
-  if (route() === "/request") return;
+  if (route() === "/request" || !cart.length) return;
   qs("#app")?.insertAdjacentHTML("beforeend", floatingCart());
 }
 
@@ -228,7 +234,7 @@ function carouselMarkup(images, label, autoplay = false, interval = 4500) {
     <div class="carousel__viewport" aria-live="${autoplay ? "off" : "polite"}">
       ${images.map((image, index) => {
         const photo = typeof image === "string" ? { src: image, alt: `${label}, фотография ${index + 1}` } : image;
-        return `<figure class="carousel__slide" ${index ? "hidden" : ""} data-slide role="group" aria-roledescription="слайд" aria-label="${index + 1} из ${images.length}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt)}" decoding="async" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><figcaption>${photo.caption ? `<span>${escapeHtml(photo.caption)}</span>` : ""}<span>${index + 1} из ${images.length}</span></figcaption></figure>`;
+        return `<figure class="carousel__slide" ${index ? "hidden" : ""} data-slide role="group" aria-roledescription="слайд" aria-label="${index + 1} из ${images.length}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt)}" decoding="async" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}></figure>`;
       }).join("")}
       <button class="carousel__arrow carousel__arrow--prev" type="button" data-carousel-prev aria-label="Предыдущая фотография">←</button>
       <button class="carousel__arrow carousel__arrow--next" type="button" data-carousel-next aria-label="Следующая фотография">→</button>
@@ -308,7 +314,6 @@ function renderAbout() {
           <div class="about-hero__grid">
             <figure class="about-decorator-photo">
               <img src="${escapeHtml(project.about.decoratorPhoto)}" alt="${escapeHtml(project.about.decoratorPhotoAlt)}">
-              <figcaption>Декоратор «Арт-деко»</figcaption>
             </figure>
             <div class="about-hero__copy">
               <p class="eyebrow">${escapeHtml(project.about.decoratorEyebrow)}</p>
@@ -343,9 +348,7 @@ function renderAbout() {
               <div class="company-experience"><span aria-hidden="true">✦</span> ${escapeHtml(project.company.experience)}</div>
               <p class="company-geography">${escapeHtml(project.company.geography)}</p>
             </div>
-            <div class="about-work-grid" aria-label="Примеры работ компании">
-              ${project.about.gallery.map((photo) => `<figure><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt)}" loading="lazy"><figcaption>${escapeHtml(photo.caption)}</figcaption></figure>`).join("")}
-            </div>
+            ${carouselMarkup(project.about.gallery, "Другие работы Арт-деко", true, 5000)}
           </div>
         </div>
       </section>
@@ -544,7 +547,7 @@ function renderCart() {
             </div>
             ${callPanel()}
             <div class="actions"><a class="button button--secondary" href="#/catalog">Выбрать ещё оформление</a></div>
-          ` : `<div class="empty"><span class="empty__symbol" aria-hidden="true">✦</span><h2>Корзина пока пуста</h2><p>Выберите праздник в каталоге и добавьте понравившийся вариант.</p><a class="button" href="#/catalog">Открыть каталог</a></div>`}
+          ` : `<div class="empty"><span class="empty__symbol" aria-hidden="true">✦</span><h2>Корзина пока пуста</h2><p>Выберите праздник в каталоге или расскажите о своём событии.</p><div class="actions actions--center"><a class="button" href="#/catalog">Открыть каталог</a><a class="button button--secondary" href="#/request?type=custom">Заказать индивидуальное оформление</a></div></div>`}
         </div>
       </section>
     `,
@@ -564,6 +567,122 @@ function renderCart() {
       mountFloatingCart();
       setNotice("Вариант удалён из корзины.");
     });
+  });
+}
+
+function renderRequest(showSuccess = false) {
+  const customRequest = selectedParam("type") === "custom";
+  renderShell({
+    title: `Оформление заказа — ${project.name}`,
+    nav: nav("/request"),
+    content: `
+      <section class="section request-page">
+        <div class="container request-back"><a class="back-link" href="#/cart">← Вернуться в корзину</a></div>
+        <div class="container grid grid-2 request-layout">
+          <div>
+            <p class="eyebrow">Карточка заказа</p>
+            <h1>${customRequest ? "Расскажите о вашем событии" : escapeHtml(project.form.title)}</h1>
+            <p class="lead">${customRequest ? "Укажите основные сведения о празднике — по ним будет проще обсудить идею и рассчитать оформление." : escapeHtml(project.form.note)}</p>
+            ${cart.length ? `<p class="selection-note"><strong>Выбрано:</strong> ${cart.map((item) => escapeHtml(item.name)).join(", ")}</p>` : '<p class="selection-note">Готовый вариант можно не выбирать: опишите идею в поле «Пожелания».</p>'}
+            <p class="local-data-note">В этой версии карточка сохраняется только на вашем устройстве. Чтобы сразу связаться с декоратором, позвоните по номеру <a href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>.</p>
+          </div>
+          <form id="lead-form" class="panel stack" novalidate>
+            <p class="form-required-note"><span aria-hidden="true">*</span> Обязательные поля</p>
+            <label><span class="field-label">Имя и фамилия <span class="required-mark" aria-hidden="true">*</span></span><input id="lead-name" name="name" autocomplete="name" maxlength="120" aria-describedby="name-help name-error" required><span id="name-help" class="help">Как к вам обращаться.</span><span id="name-error" class="field-error field-error--inline" hidden></span></label>
+            <label><span class="field-label">Номер телефона <span class="required-mark" aria-hidden="true">*</span></span><input id="lead-contact" name="contact" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="Например, +7 999 123-45-67" aria-describedby="contact-help contact-error" required><span id="contact-help" class="help">Для согласования деталей оформления.</span><span id="contact-error" class="field-error field-error--inline" hidden></span></label>
+            <label><span class="field-label">Дата события <span class="required-mark" aria-hidden="true">*</span></span><input id="lead-date" name="eventDate" type="date" aria-describedby="eventDate-error" required><span id="eventDate-error" class="field-error field-error--inline" hidden></span></label>
+            <label><span class="field-label">Город <span class="required-mark" aria-hidden="true">*</span></span><input id="lead-city" name="city" autocomplete="address-level2" maxlength="100" aria-describedby="city-error" required><span id="city-error" class="field-error field-error--inline" hidden></span></label>
+            <label><span class="field-label">Место проведения <span class="required-mark" aria-hidden="true">*</span></span><input id="lead-venue" name="venue" autocomplete="street-address" maxlength="200" placeholder="Название площадки или адрес" aria-describedby="venue-help venue-error" required><span id="venue-help" class="help">Если площадка ещё не выбрана, напишите «Не выбрано».</span><span id="venue-error" class="field-error field-error--inline" hidden></span></label>
+            <label><span class="field-label">Удобный мессенджер <span class="required-mark" aria-hidden="true">*</span></span><select id="lead-messenger" name="messenger" aria-describedby="messenger-help messenger-error" required><option value="">Выберите мессенджер</option><option value="MAX">MAX</option><option value="Telegram">Telegram</option><option value="WhatsApp">WhatsApp</option></select><span id="messenger-help" class="help">Укажите, где вам удобнее получить ответ.</span><span id="messenger-error" class="field-error field-error--inline" hidden></span></label>
+            <label><span class="field-label">Пожелания <span class="muted">(необязательно)</span></span><textarea name="details" maxlength="1200" placeholder="Например: число гостей, цвета, стиль и особенности площадки"></textarea><span class="help">Расскажите всё, что важно учесть при оформлении.</span></label>
+            <p id="form-error" class="form-error-summary" role="alert" tabindex="-1" hidden></p>
+            <button class="button" type="submit">${store.mode === "local" ? "Сохранить данные заказа" : escapeHtml(project.form.submitLabel)}</button>
+          </form>
+        </div>
+      </section>
+      ${showSuccess ? `<div class="modal-backdrop" role="presentation"><section class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-title"><button id="success-modal-close" class="modal-close" type="button" aria-label="Закрыть окно">×</button><p class="eyebrow">Карточка сохранена</p><h2 id="success-title">Данные заказа сохранены</h2><p>${store.mode === "local" ? "Они доступны только в этом браузере и пока не отправлены декоратору." : "Заявка отправлена. Декоратор свяжется с вами, чтобы уточнить детали."}</p><div class="actions"><a class="button" href="${escapeHtml(project.phone.href)}">Позвонить сейчас</a><a class="button button--secondary" href="#/">На главную</a></div></section></div>` : ""}
+    `,
+  });
+
+  const closeSuccess = () => qs(".modal-backdrop")?.remove();
+  qs("#success-modal-close")?.addEventListener("click", closeSuccess);
+  if (showSuccess) qs("#success-modal-close")?.focus();
+
+  const form = qs("#lead-form");
+  const dateField = qs('[name="eventDate"]', form);
+  const now = new Date();
+  const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  dateField.min = localToday;
+
+  const clearFieldError = (field) => {
+    field.removeAttribute("aria-invalid");
+    const fieldError = qs(`#${field.name}-error`, form);
+    if (fieldError) { fieldError.textContent = ""; fieldError.hidden = true; }
+  };
+  qsa("input, select, textarea", form).forEach((field) => field.addEventListener(field.tagName === "SELECT" ? "change" : "input", () => clearFieldError(field)));
+
+  let submitting = false;
+  const submissionId = crypto.randomUUID();
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (submitting) return;
+    const data = new FormData(form);
+    const details = String(data.get("details") || "").trim();
+    const selectedNames = cart.map((item) => item.name).join(", ");
+    const payload = {
+      submissionId,
+      name: String(data.get("name") || "").trim(),
+      contact: String(data.get("contact") || "").trim(),
+      eventDate: String(data.get("eventDate") || ""),
+      city: String(data.get("city") || "").trim(),
+      venue: String(data.get("venue") || "").trim(),
+      messenger: String(data.get("messenger") || ""),
+      details,
+      selectedVariants: cart.map(({ id, name, price }) => ({ id, name, price })),
+      problem: `${selectedNames ? `Выбрано: ${selectedNames}. ` : ""}${details}`.trim(),
+    };
+    const summary = qs("#form-error", form);
+    qsa("[aria-invalid]", form).forEach(clearFieldError);
+    summary.hidden = true;
+    const errors = [];
+    if (payload.name.length < 2) errors.push(["name", "Введите имя — не меньше 2 символов."]);
+    if (payload.contact.replace(/\D/g, "").length < 5) errors.push(["contact", "Укажите номер телефона — не меньше 5 цифр."]);
+    if (!payload.eventDate) errors.push(["eventDate", "Выберите дату события."]);
+    else if (payload.eventDate < localToday) errors.push(["eventDate", "Выберите сегодняшнюю или будущую дату."]);
+    if (!payload.city) errors.push(["city", "Укажите город проведения."]);
+    if (!payload.venue) errors.push(["venue", "Укажите площадку, адрес или напишите «Не выбрано»."]);
+    if (!payload.messenger) errors.push(["messenger", "Выберите удобный мессенджер."]);
+    if (errors.length) {
+      errors.forEach(([name, message]) => {
+        const field = qs(`[name="${name}"]`, form);
+        const fieldError = qs(`#${name}-error`, form);
+        field.setAttribute("aria-invalid", "true");
+        fieldError.textContent = message;
+        fieldError.hidden = false;
+      });
+      summary.textContent = "Проверьте выделенные поля — рядом указано, что исправить.";
+      summary.hidden = false;
+      qs("[aria-invalid]", form)?.focus();
+      return;
+    }
+
+    const button = qs('button[type="submit"]', form);
+    const submitLabel = button.textContent;
+    submitting = true;
+    button.disabled = true;
+    button.textContent = store.mode === "local" ? "Сохраняем…" : "Отправляем…";
+    try {
+      await store.create("lead", payload, "new");
+      clearCart();
+      renderRequest(true);
+    } catch {
+      summary.textContent = store.mode === "local" ? "Не удалось сохранить карточку. Данные остались в форме — освободите место в браузере и попробуйте ещё раз." : "Не удалось отправить заявку. Проверьте интернет и попробуйте ещё раз.";
+      summary.hidden = false;
+      summary.focus();
+      submitting = false;
+      button.disabled = false;
+      button.textContent = submitLabel;
+    }
   });
 }
 
@@ -598,6 +717,12 @@ async function workspaceContent() {
                   <h3 style="margin-top:12px">${escapeHtml(record.payload.name || "Без имени")}</h3>
                   <p><strong>${escapeHtml(record.payload.contact || "Контакт не указан")}</strong></p>
                   <p>${escapeHtml(record.payload.problem || "")}</p>
+                  <dl class="record-details">
+                    ${record.payload.eventDate ? `<div><dt>Дата</dt><dd>${escapeHtml(record.payload.eventDate)}</dd></div>` : ""}
+                    ${record.payload.city ? `<div><dt>Город</dt><dd>${escapeHtml(record.payload.city)}</dd></div>` : ""}
+                    ${record.payload.venue ? `<div><dt>Площадка</dt><dd>${escapeHtml(record.payload.venue)}</dd></div>` : ""}
+                    ${record.payload.messenger ? `<div><dt>Мессенджер</dt><dd>${escapeHtml(record.payload.messenger)}</dd></div>` : ""}
+                  </dl>
                   <p class="record-meta">${formatDate(record.created_at)}</p>
                 </div>
                 <div class="stack" style="min-width:180px">
@@ -699,10 +824,7 @@ async function render() {
   else if (current === "/cart") renderCart();
   else if (current === "/about") renderAbout();
   else if (current === "/custom-event") renderCustomEvent();
-  else if (current === "/request") {
-    location.hash = "#/cart";
-    return;
-  }
+  else if (current === "/request") renderRequest();
   else if (current === "/styleguide") return renderStyleguide();
   else renderHome();
   mountFloatingCart();
