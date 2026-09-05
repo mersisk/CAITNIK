@@ -320,10 +320,9 @@ export const project = {
       { src: "./assets/photo_100_2026-09-05_20-25-50.jpg", alt: "Светлое оформление стола с воздушными цветочными композициями" },
     ],
   },
-  // Вставьте полные ссылки, например https://instagram.com/name и https://t.me/name.
   socials: [
-    { id: "instagram", label: "Instagram", url: "" },
-    { id: "telegram", label: "Telegram-канал", url: "" },
+    { id: "instagram", label: "Instagram", url: "https://www.instagram.com/artdeko.studio?igsi=bmlid2hjbXNha2Jn" },
+    { id: "telegram", label: "Telegram-канал", url: "https://t.me/YRNbstP7931mOTli" },
   ],
   phone: {
     display: "+7 951 026-03-25",
