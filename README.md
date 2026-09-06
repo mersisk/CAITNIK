@@ -5,7 +5,7 @@
 [Use this template](https://github.com/FocusSam/airc-vibe-page/generate) · [Live demo](https://focussam.github.io/airc-vibe-page/) · [Release v1.0.0](https://github.com/FocusSam/airc-vibe-page/releases/tag/v1.0.0)
 
 Production-форма сохраняет заявки в PostgreSQL на российском VDS и уведомляет
-декоратора через MAX Bot API.
+декоратора через Telegram Bot API.
 
 Начни с `START_HERE.md`. Готовые команды для агента лежат в `docs/INSTALL_WITH_AGENT.md`.
 

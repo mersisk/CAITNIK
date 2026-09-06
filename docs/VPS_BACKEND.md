@@ -10,7 +10,7 @@ https://api.artdeco-vl.ru      Nginx проксирует /api/ на 127.0.0.1:3
                                          ↓
                             PostgreSQL на 127.0.0.1:5432
                                          ↓
-                                   MAX Bot API
+                                Telegram Bot API
 ```
 
 Node.js слушает только loopback-адрес. PostgreSQL также не должен принимать
@@ -50,8 +50,8 @@ nano .env
 DATABASE_URL=postgresql://artdeco_user:ВАШ_ПАРОЛЬ@127.0.0.1:5432/artdeco
 SITE_ORIGIN=https://artdeco-vl.ru
 PORT=3000
-MAX_BOT_TOKEN=
-MAX_CHAT_ID=
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
 ```
 
 `.env` исключён из Git. Если пароль содержит `@`, `:`, `/`, `#`, `%` или другие
@@ -61,8 +61,8 @@ MAX_CHAT_ID=
 node -e "console.log(encodeURIComponent(process.argv[1]))" 'ВАШ_ПАРОЛЬ'
 ```
 
-Пустые `MAX_BOT_TOKEN` и `MAX_CHAT_ID` допустимы: заявка сохранится в PostgreSQL,
-а отправка в MAX будет пропущена.
+Пустые `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` допустимы: заявка сохранится в
+PostgreSQL, а отправка в Telegram будет пропущена.
 
 ## 3. Проверка структуры PostgreSQL
 
@@ -146,7 +146,7 @@ curl -i -X POST http://127.0.0.1:3000/api/applications \
     "event_date":"2099-10-20",
     "city":"Владивосток",
     "venue":"Банкетный зал",
-    "messenger":"MAX",
+    "messenger":"Telegram",
     "event_type":"Романтический вечер",
     "order_type":"catalog",
     "wishes":"Тёплый свет",
@@ -224,8 +224,8 @@ sudo nano /etc/artdeco/artdeco.env
 DATABASE_URL=postgresql://artdeco_user:ЗАКОДИРОВАННЫЙ_ПАРОЛЬ@127.0.0.1:5432/artdeco
 SITE_ORIGIN=https://artdeco-vl.ru
 PORT=3000
-MAX_BOT_TOKEN=
-MAX_CHAT_ID=
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
 ```
 
 Ограничьте доступ:
@@ -366,14 +366,14 @@ LIMIT 10;
 У заявки из каталога `cart_items` содержит канонические название и цену. У
 индивидуальной заявки массив пуст, а идея находится в `wishes`.
 
-## 14. Подключение и проверка MAX
+## 14. Подключение и проверка Telegram
 
 Добавьте бота в нужный чат, получите `chat_id`, затем заполните на VDS только
 файл `/etc/artdeco/artdeco.env`:
 
 ```dotenv
-MAX_BOT_TOKEN=ТОКЕН_БОТА
-MAX_CHAT_ID=ЧИСЛОВОЙ_ID_ЧАТА
+TELEGRAM_BOT_TOKEN=ТОКЕН_БОТА
+TELEGRAM_CHAT_ID=ID_ЧАТА
 ```
 
 Перезапустите API:
@@ -383,13 +383,14 @@ sudo systemctl restart artdeco-api
 sudo journalctl -u artdeco-api -f
 ```
 
-Отправьте одну тестовую заявку. Она должна появиться в PostgreSQL и в MAX. Если
-MAX недоступен, API всё равно возвращает успех, заявка остаётся в базе, а журнал
-содержит `MAX notification failed` и номер заявки без токена.
+Отправьте одну тестовую заявку. Она должна появиться в PostgreSQL и Telegram.
+Если Telegram недоступен, API всё равно возвращает успех, заявка остаётся в базе,
+а журнал содержит `Telegram notification failed` и номер заявки без токена.
 
-MAX принимает сообщения через `POST https://platform-api2.max.ru/messages` с
-`chat_id` в query-параметре и токеном в заголовке `Authorization`. Токен нельзя
-добавлять в frontend, Nginx-конфигурацию или Git.
+Telegram принимает сообщения через официальный HTTPS-метод
+`POST https://api.telegram.org/bot<token>/sendMessage`. `chat_id` и текст
+передаются в JSON-теле запроса. Токен нельзя добавлять во frontend,
+Nginx-конфигурацию или Git.
 
 ## 15. Обновление проекта
 

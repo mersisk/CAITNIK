@@ -2,7 +2,7 @@ import cors from "cors";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import { createApplication } from "./applications.mjs";
-import { sendApplicationToMax } from "./max-bot.mjs";
+import { sendApplicationToTelegram } from "./telegram-bot.mjs";
 import { validateApplication } from "./validation.mjs";
 
 export function isAllowedOrigin(origin, siteOrigin = process.env.SITE_ORIGIN) {
@@ -20,7 +20,7 @@ export function isAllowedOrigin(origin, siteOrigin = process.env.SITE_ORIGIN) {
 export function createApp({
   pool,
   logger = console,
-  sendToMax = sendApplicationToMax,
+  sendToTelegram = sendApplicationToTelegram,
   siteOrigin = process.env.SITE_ORIGIN,
   rateLimitOptions = {},
 } = {}) {
@@ -68,12 +68,12 @@ export function createApp({
       const id = await createApplication(pool, validation.value);
       const application = { id, ...validation.value };
       try {
-        const maxResult = await sendToMax(application);
-        if (maxResult?.skipped) logger.warn("MAX notification skipped: bot is not configured", { applicationId: id });
+        const telegramResult = await sendToTelegram(application);
+        if (telegramResult?.skipped) logger.warn("Telegram notification skipped: bot is not configured", { applicationId: id });
       } catch (error) {
-        logger.error("MAX notification failed", {
+        logger.error("Telegram notification failed", {
           applicationId: id,
-          message: error instanceof Error ? error.message : "Unknown MAX error",
+          code: error?.code || "unknown",
         });
       }
       return response.status(201).json({ success: true, id });

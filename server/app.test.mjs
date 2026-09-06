@@ -9,26 +9,26 @@ afterEach(async () => {
 
 async function startApi(options = {}) {
   const calls = [];
-  const maxCalls = [];
+  const telegramCalls = [];
   const pool = options.pool || {
     async query(sql, values) {
       calls.push({ sql, values });
       return { rows: [{ id: 123 }] };
     },
   };
-  const logger = { warn() {}, error() {} };
+  const logger = options.logger || { warn() {}, error() {} };
   const app = createApp({
     pool,
     logger,
     siteOrigin: "https://artdeco-vl.ru",
-    sendToMax: options.sendToMax || (async (application) => { maxCalls.push(application); return { sent: true }; }),
+    sendToTelegram: options.sendToTelegram || (async (application) => { telegramCalls.push(application); return { sent: true }; }),
     rateLimitOptions: options.rateLimitOptions,
   });
   const server = await new Promise((resolve) => {
     const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
   });
   servers.push(server);
-  return { url: `http://127.0.0.1:${server.address().port}`, calls, maxCalls };
+  return { url: `http://127.0.0.1:${server.address().port}`, calls, telegramCalls };
 }
 
 function validCatalogApplication() {
@@ -39,7 +39,7 @@ function validCatalogApplication() {
     event_date: "2099-10-20",
     city: "Владивосток",
     venue: "Банкетный зал",
-    messenger: "MAX",
+    messenger: "Telegram",
     event_type: "Романтический вечер",
     order_type: "catalog",
     wishes: "Тёплый свет",
@@ -47,7 +47,7 @@ function validCatalogApplication() {
   };
 }
 
-test("catalog: сохраняет канонические позиции параметризованным SQL и вызывает MAX", async () => {
+test("catalog: сохраняет канонические позиции параметризованным SQL и вызывает Telegram", async () => {
   const api = await startApi();
   const response = await fetch(`${api.url}/api/applications`, {
     method: "POST",
@@ -61,7 +61,7 @@ test("catalog: сохраняет канонические позиции пар
   const savedCart = JSON.parse(api.calls[0].values[10]);
   assert.deepEqual(savedCart, [{ id: "romantic-table-candles", name: "Вечер при свечах", price: "от 5 560 ₽", quantity: 1 }]);
   assert.equal(api.calls[0].values[2], "+79991234567");
-  assert.equal(api.maxCalls[0].id, 123);
+  assert.equal(api.telegramCalls[0].id, 123);
 });
 
 test("custom: требует wishes и пустую корзину", async () => {
@@ -171,10 +171,20 @@ test("ошибка PostgreSQL не раскрывается клиенту", asy
   assert.equal(response.status, 500);
   const body = await response.json();
   assert.equal(JSON.stringify(body).includes("secret SQL detail"), false);
+  assert.equal(api.telegramCalls.length, 0);
 });
 
-test("сбой MAX не отменяет сохранённую заявку", async () => {
-  const api = await startApi({ sendToMax: async () => { throw new Error("MAX unavailable"); } });
+test("сбой Telegram не отменяет сохранённую заявку и token не попадает в лог", async () => {
+  const secretToken = "secret-telegram-token";
+  const logEntries = [];
+  const logger = {
+    warn(...args) { logEntries.push(args); },
+    error(...args) { logEntries.push(args); },
+  };
+  const api = await startApi({
+    logger,
+    sendToTelegram: async () => { throw new Error(`Telegram unavailable: ${secretToken}`); },
+  });
   const response = await fetch(`${api.url}/api/applications`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -183,4 +193,6 @@ test("сбой MAX не отменяет сохранённую заявку", a
   assert.equal(response.status, 201);
   assert.deepEqual(await response.json(), { success: true, id: 123 });
   assert.equal(api.calls.length, 1);
+  assert.equal(JSON.stringify(logEntries).includes(secretToken), false);
+  assert.match(JSON.stringify(logEntries), /Telegram notification failed/);
 });

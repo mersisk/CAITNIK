@@ -24,5 +24,5 @@
 - Карточка заказа доступна по `#/request` и отправляет данные в `POST /api/applications`; локально API находится на `127.0.0.1:3000`, production API — на `https://api.artdeco-vl.ru`.
 - Сохраняй два сценария: `catalog` требует позиции корзины, `custom` требует `wishes` и отправляет пустой `cart_items`.
 - Не очищай форму и корзину при ошибке API. Корзину можно очистить только после ответа `{ success: true }`.
-- Backend сверяет позиции с `src/project.js`, подключает PostgreSQL только через `DATABASE_URL` и вызывает MAX после успешного `INSERT`. Секреты не помещай во frontend и логи.
+- Backend сверяет позиции с `src/project.js`, подключает PostgreSQL только через `DATABASE_URL` и вызывает Telegram после успешного `INSERT`. Секреты не помещай во frontend и логи.
 - Ссылки Instagram и Telegram редактируются в `project.socials`. Пустая ссылка остаётся неактивной; не подставляй вымышленные адреса.

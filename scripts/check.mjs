@@ -39,7 +39,7 @@ try {
 }
 
 try {
-  execFileSync(process.execPath, ["--test", join(root, "server/app.test.mjs"), join(root, "server/max-bot.test.mjs")], { stdio: "pipe" });
+  execFileSync(process.execPath, ["--test", join(root, "server/app.test.mjs"), join(root, "server/telegram-bot.test.mjs")], { stdio: "pipe" });
 } catch (error) {
   failures.push(`Backend API: ${error.stdout?.toString() || ""}${error.stderr?.toString() || error.message}`);
 }
@@ -86,5 +86,5 @@ console.log("— синтаксис JavaScript");
 console.log("— обязательные файлы");
 console.log("— базовый поиск секретов");
 console.log("— локальный CRUD и публичная Supabase-вставка");
-console.log("— валидация, SQL, CORS, rate limiting и MAX-интеграция API");
+console.log("— валидация, SQL, CORS, rate limiting и Telegram-интеграция API");
 console.log("— запуск локального сайта\n");
