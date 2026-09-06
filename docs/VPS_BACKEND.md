@@ -50,8 +50,14 @@ nano .env
 DATABASE_URL=postgresql://artdeco_user:ВАШ_ПАРОЛЬ@127.0.0.1:5432/artdeco
 SITE_ORIGIN=https://artdeco-vl.ru
 PORT=3000
+
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
+
+TELEGRAM_PROXY_HOST=
+TELEGRAM_PROXY_PORT=
+TELEGRAM_PROXY_USERNAME=
+TELEGRAM_PROXY_PASSWORD=
 ```
 
 `.env` исключён из Git. Если пароль содержит `@`, `:`, `/`, `#`, `%` или другие
@@ -63,6 +69,10 @@ node -e "console.log(encodeURIComponent(process.argv[1]))" 'ВАШ_ПАРОЛЬ'
 
 Пустые `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` допустимы: заявка сохранится в
 PostgreSQL, а отправка в Telegram будет пропущена.
+
+Прокси-переменные необязательны. Если оставить их пустыми, Telegram использует
+прямое HTTPS-соединение. Если прокси нужен, заполните как минимум host и port;
+username и password оставьте пустыми только для прокси без авторизации.
 
 ## 3. Проверка структуры PostgreSQL
 
@@ -224,8 +234,14 @@ sudo nano /etc/artdeco/artdeco.env
 DATABASE_URL=postgresql://artdeco_user:ЗАКОДИРОВАННЫЙ_ПАРОЛЬ@127.0.0.1:5432/artdeco
 SITE_ORIGIN=https://artdeco-vl.ru
 PORT=3000
+
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
+
+TELEGRAM_PROXY_HOST=
+TELEGRAM_PROXY_PORT=
+TELEGRAM_PROXY_USERNAME=
+TELEGRAM_PROXY_PASSWORD=
 ```
 
 Ограничьте доступ:
@@ -374,7 +390,19 @@ LIMIT 10;
 ```dotenv
 TELEGRAM_BOT_TOKEN=ТОКЕН_БОТА
 TELEGRAM_CHAT_ID=ID_ЧАТА
+TELEGRAM_PROXY_HOST=ХОСТ_SOCKS5_ПРОКСИ
+TELEGRAM_PROXY_PORT=ПОРТ_SOCKS5_ПРОКСИ
+TELEGRAM_PROXY_USERNAME=ЛОГИН_SOCKS5_ПРОКСИ
+TELEGRAM_PROXY_PASSWORD=ПАРОЛЬ_SOCKS5_ПРОКСИ
 ```
+
+Backend создаёт `socks5h`-агент только внутри Telegram-модуля. Буква `h` важна:
+домен `api.telegram.org` передаётся SOCKS5-прокси и разрешается на его стороне,
+как при `curl --socks5-hostname`. PostgreSQL, Nginx, сайт и остальные запросы
+backend этот агент не получают. Если прокси не требует авторизации, оставьте
+`TELEGRAM_PROXY_USERNAME` и `TELEGRAM_PROXY_PASSWORD` пустыми. Не добавляйте
+прокси-настройки в Git или systemd unit; храните их только в закрытом
+`/etc/artdeco/artdeco.env`.
 
 Перезапустите API:
 

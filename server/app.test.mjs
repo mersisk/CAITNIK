@@ -174,8 +174,9 @@ test("ошибка PostgreSQL не раскрывается клиенту", asy
   assert.equal(api.telegramCalls.length, 0);
 });
 
-test("сбой Telegram не отменяет сохранённую заявку и token не попадает в лог", async () => {
+test("сбой Telegram не отменяет сохранённую заявку, token и proxy password не попадают в лог", async () => {
   const secretToken = "secret-telegram-token";
+  const secretProxyPassword = "secret-proxy-password";
   const logEntries = [];
   const logger = {
     warn(...args) { logEntries.push(args); },
@@ -183,7 +184,7 @@ test("сбой Telegram не отменяет сохранённую заявк�
   };
   const api = await startApi({
     logger,
-    sendToTelegram: async () => { throw new Error(`Telegram unavailable: ${secretToken}`); },
+    sendToTelegram: async () => { throw new Error(`Telegram unavailable: ${secretToken} ${secretProxyPassword}`); },
   });
   const response = await fetch(`${api.url}/api/applications`, {
     method: "POST",
@@ -194,5 +195,6 @@ test("сбой Telegram не отменяет сохранённую заявк�
   assert.deepEqual(await response.json(), { success: true, id: 123 });
   assert.equal(api.calls.length, 1);
   assert.equal(JSON.stringify(logEntries).includes(secretToken), false);
+  assert.equal(JSON.stringify(logEntries).includes(secretProxyPassword), false);
   assert.match(JSON.stringify(logEntries), /Telegram notification failed/);
 });

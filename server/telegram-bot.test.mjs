@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { EventEmitter } from "node:events";
 import test from "node:test";
 import { formatApplicationForTelegram, sendApplicationToTelegram } from "./telegram-bot.mjs";
 
@@ -17,21 +18,48 @@ const application = {
   cart_items: [{ id: "wedding-photo-panels", name: "Фотозона из панелей", price: "от 20 000 ₽", quantity: 1 }],
 };
 
-async function withTelegramEnv({ token, chatId }, callback) {
-  const previousToken = process.env.TELEGRAM_BOT_TOKEN;
-  const previousChatId = process.env.TELEGRAM_CHAT_ID;
-  if (token === undefined) delete process.env.TELEGRAM_BOT_TOKEN;
-  else process.env.TELEGRAM_BOT_TOKEN = token;
-  if (chatId === undefined) delete process.env.TELEGRAM_CHAT_ID;
-  else process.env.TELEGRAM_CHAT_ID = chatId;
+const envNames = {
+  token: "TELEGRAM_BOT_TOKEN",
+  chatId: "TELEGRAM_CHAT_ID",
+  proxyHost: "TELEGRAM_PROXY_HOST",
+  proxyPort: "TELEGRAM_PROXY_PORT",
+  proxyUsername: "TELEGRAM_PROXY_USERNAME",
+  proxyPassword: "TELEGRAM_PROXY_PASSWORD",
+};
+
+async function withTelegramEnv(values, callback) {
+  const previous = Object.fromEntries(Object.values(envNames).map((name) => [name, process.env[name]]));
+  for (const [key, name] of Object.entries(envNames)) {
+    const value = values[key];
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+  }
   try {
     return await callback();
   } finally {
-    if (previousToken === undefined) delete process.env.TELEGRAM_BOT_TOKEN;
-    else process.env.TELEGRAM_BOT_TOKEN = previousToken;
-    if (previousChatId === undefined) delete process.env.TELEGRAM_CHAT_ID;
-    else process.env.TELEGRAM_CHAT_ID = previousChatId;
+    for (const [name, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
   }
+}
+
+function mockRequest({ status = 200, responseBody = { ok: true } } = {}, capture = {}) {
+  return (url, options, callback) => {
+    const request = new EventEmitter();
+    request.end = (body) => {
+      Object.assign(capture, { url: String(url), options, body });
+      queueMicrotask(() => {
+        const response = new EventEmitter();
+        response.statusCode = status;
+        response.setEncoding = () => {};
+        callback(response);
+        response.emit("data", JSON.stringify(responseBody));
+        response.emit("end");
+      });
+    };
+    return request;
+  };
 }
 
 test("формирует сообщение каталога для Telegram", () => {
@@ -56,7 +84,7 @@ test("без Telegram token или chat id безопасно пропускае
   ]) {
     let called = false;
     const result = await withTelegramEnv(credentials, () => sendApplicationToTelegram(application, {
-      fetchImpl: async () => { called = true; },
+      requestImpl: () => { called = true; },
     }));
     assert.deepEqual(result, { sent: false, skipped: true });
     assert.equal(called, false);
@@ -64,28 +92,72 @@ test("без Telegram token или chat id безопасно пропускае
 });
 
 test("успешно отправляет JSON через официальный Telegram Bot API", async () => {
-  let request;
+  const request = {};
   const result = await withTelegramEnv({ token: "test-token", chatId: "-100456" }, () => sendApplicationToTelegram(application, {
-    fetchImpl: async (url, options) => {
-      request = { url: String(url), options };
-      return { ok: true, status: 200, json: async () => ({ ok: true, result: { message_id: 1 } }) };
-    },
+    requestImpl: mockRequest({}, request),
   }));
 
   assert.deepEqual(result, { sent: true, skipped: false });
   assert.equal(request.url, "https://api.telegram.org/bottest-token/sendMessage");
   assert.equal(request.options.method, "POST");
   assert.equal(request.options.headers["Content-Type"], "application/json");
-  const body = JSON.parse(request.options.body);
+  assert.equal(request.options.agent, undefined);
+  const body = JSON.parse(request.body);
   assert.equal(body.chat_id, "-100456");
   assert.match(body.text, /Новая заявка №123/);
+});
+
+test("использует socks5h proxy только для HTTPS-запроса Telegram", async () => {
+  const request = {};
+  const agent = { name: "test-socks-agent" };
+  let proxyUrl;
+  await withTelegramEnv({
+    token: "test-token",
+    chatId: "-100456",
+    proxyHost: "proxy.example",
+    proxyPort: "1080",
+    proxyUsername: "proxy-user",
+    proxyPassword: "proxy-password",
+  }, () => sendApplicationToTelegram(application, {
+    requestImpl: mockRequest({}, request),
+    agentFactory(url) {
+      proxyUrl = String(url);
+      return agent;
+    },
+  }));
+
+  assert.equal(request.url, "https://api.telegram.org/bottest-token/sendMessage");
+  assert.equal(request.options.agent, agent);
+  assert.equal(proxyUrl, "socks5h://proxy-user:proxy-password@proxy.example:1080");
+});
+
+test("не использует proxy при полностью пустых proxy-настройках", async () => {
+  const request = {};
+  await withTelegramEnv({ token: "test-token", chatId: "456" }, () => sendApplicationToTelegram(application, {
+    requestImpl: mockRequest({}, request),
+    agentFactory() {
+      throw new Error("agentFactory не должен вызываться");
+    },
+  }));
+  assert.equal(request.options.agent, undefined);
+});
+
+test("не выполняет Telegram-запрос с неполной proxy-конфигурацией", async () => {
+  let called = false;
+  await assert.rejects(
+    withTelegramEnv({ token: "test-token", chatId: "456", proxyHost: "proxy.example" }, () => sendApplicationToTelegram(application, {
+      requestImpl: () => { called = true; },
+    })),
+    /настроен не полностью/,
+  );
+  assert.equal(called, false);
 });
 
 test("ошибка Telegram не содержит token в сообщении исключения", async () => {
   const token = "secret-test-token";
   await assert.rejects(
     withTelegramEnv({ token, chatId: "456" }, () => sendApplicationToTelegram(application, {
-      fetchImpl: async () => ({ ok: false, status: 401, json: async () => ({ ok: false }) }),
+      requestImpl: mockRequest({ status: 401, responseBody: { ok: false } }),
     })),
     (error) => {
       assert.equal(error.message.includes(token), false);

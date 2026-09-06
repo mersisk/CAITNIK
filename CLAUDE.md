@@ -25,4 +25,5 @@
 - Сохраняй два сценария: `catalog` требует позиции корзины, `custom` требует `wishes` и отправляет пустой `cart_items`.
 - Не очищай форму и корзину при ошибке API. Корзину можно очистить только после ответа `{ success: true }`.
 - Backend сверяет позиции с `src/project.js`, подключает PostgreSQL только через `DATABASE_URL` и вызывает Telegram после успешного `INSERT`. Секреты не помещай во frontend и логи.
+- SOCKS5-прокси применяется только в `server/telegram-bot.mjs`; используй `socks5h` и переменные `TELEGRAM_PROXY_*`, не направляй через него PostgreSQL или остальной backend.
 - Ссылки Instagram и Telegram редактируются в `project.socials`. Пустая ссылка остаётся неактивной; не подставляй вымышленные адреса.

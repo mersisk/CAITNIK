@@ -19,6 +19,9 @@ Telegram. Корзина остаётся в `localStorage` только до у
   не превращает успешное сохранение в ошибку для клиента.
 - `DATABASE_URL`, `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` существуют только в окружении
   backend. Секреты запрещено помещать во frontend, Git и Nginx-конфигурацию.
+- Необязательные `TELEGRAM_PROXY_HOST`, `TELEGRAM_PROXY_PORT`,
+  `TELEGRAM_PROXY_USERNAME` и `TELEGRAM_PROXY_PASSWORD` также существуют только
+  в окружении backend. `socks5h` применяется только к Telegram Bot API.
 - Подробный запуск и проверка описаны в `docs/VPS_BACKEND.md`.
 
 ## Таблица `applications`
