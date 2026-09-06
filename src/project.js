@@ -167,22 +167,11 @@ const catalog = [
     variants: [],
   },
   {
-    id: "first-birthday-balloons", eventId: "first-birthday", name: "Шары на годовасие", price: "от 5 390 ₽",
-    includes: "Именные композиции и наборы шаров для первого дня рождения.", tone: "blue",
-    variants: [
-      variant("first-birthday-blue", "Набор «1 годик»", "от 5 390 ₽", "Шары в выбранной палитре, цифра и небольшая композиция.", "blue"),
-      variant("first-birthday-name", "Именная композиция", "от 8 000 ₽", "Шар-гигант с именем, цифра и связки гелиевых шаров.", "rose"),
-      variant("first-birthday-cake", "Шары и стол для торта", "от 12 000 ₽", "Композиция из шаров, цифра и декор зоны для торта.", "gold"),
-    ],
-  },
-  {
-    id: "first-birthday-photo", eventId: "first-birthday", name: "Фотозона на годовасие", price: "от 15 000 ₽",
-    includes: "Фон, цифра, имя ребёнка, шары и монтаж.", tone: "blue",
-    variants: [
-      variant("first-birthday-photo-light", "Нежная фотозона", "от 15 000 ₽", "Один фон, цифра, имя и гирлянда из шаров.", "blue"),
-      variant("first-birthday-photo-theme", "Тематическая фотозона", "от 20 000 ₽", "Панели, тематические фигуры, шары и тумба.", "rose"),
-      variant("first-birthday-photo-full", "Большая фотозона", "от 28 000 ₽", "Несколько панелей, объёмный декор, тумбы и монтаж.", "lilac"),
-    ],
+    id: "first-birthday-photozone", eventId: "first-birthday", name: "Оформление фотозоны на годовасие", price: "от 15 000 ₽",
+    includes: "Фотозона для первого дня рождения с фоном, цифрой, именем ребёнка, воздушными шарами и монтажом.", tone: "blue",
+    directOrder: true,
+    gallery: placeholderGallery("Оформление фотозоны на годовасие", "blue", 4),
+    variants: [],
   },
   {
     id: "maternity-decoration", eventId: "maternity", name: "Оформление выписки из роддома", price: "от 25 000 ₽",

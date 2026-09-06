@@ -124,6 +124,25 @@ test("catalog: сохраняет одиночные услуги юбилея, 
   }
 });
 
+test("catalog: сохраняет одиночное оформление фотозоны на годовасие", async () => {
+  const api = await startApi();
+  const application = validCatalogApplication();
+  application.event_type = "Годовасие";
+  application.cart_items = [{ id: "first-birthday-photozone", name: "Другое название", price: "1 ₽", quantity: 1 }];
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(application),
+  });
+  assert.equal(response.status, 201);
+  assert.deepEqual(JSON.parse(api.calls[0].values[10]), [{
+    id: "first-birthday-photozone",
+    name: "Оформление фотозоны на годовасие",
+    price: "от 15 000 ₽",
+    quantity: 1,
+  }]);
+});
+
 test("custom: требует wishes и пустую корзину", async () => {
   const api = await startApi();
   const application = validCatalogApplication();
