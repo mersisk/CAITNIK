@@ -174,7 +174,8 @@ h3 { font-size: 20px; margin-bottom: 10px; }
 .card-link:hover::after, .card-link:focus-visible::after { transform: scaleX(1); }
 .card-link img { transition: transform .45s ease; }
 .card-link:hover img { transform: scale(1.035); }
-.event-card img, .package-card img { width: 100%; height: 230px; object-fit: cover; }
+.event-card img, .package-card img { width: 100%; height: 230px; object-fit: contain; object-position: center; background: #eee8de; }
+.event-card.card-link:hover img, .event-card.card-link:focus-visible img, .package-card.card-link:hover img, .package-card.card-link:focus-visible img, .variant-card.card-link:hover img, .variant-card.card-link:focus-visible img { transform: none; }
 .event-card--custom { display: grid; min-height: 100%; background: linear-gradient(145deg, var(--surface), var(--surface-soft)); }
 .event-card__symbol { display: grid; place-items: center; min-height: 230px; color: var(--accent); font-family: Georgia, "Times New Roman", serif; font-size: 88px; background: radial-gradient(circle, rgba(155,122,56,.14), transparent 62%); }
 .event-card__body, .package-card__body { display: grid; align-content: start; gap: 12px; padding: 24px; }
@@ -197,14 +198,14 @@ h3 { font-size: 20px; margin-bottom: 10px; }
 .back-link:hover { transform: translateX(-3px); border-color: var(--accent); }
 .package-details { padding-top: 36px; }
 .gallery-grid { display: grid; grid-template-columns: 1.45fr 1fr; grid-template-rows: repeat(2, 220px); gap: 14px; margin-bottom: 56px; }
-.gallery-grid img { width: 100%; height: 100%; object-fit: cover; border: 1px solid rgba(155,122,56,.25); border-radius: var(--radius-md); box-shadow: var(--shadow); }
+.gallery-grid img { width: 100%; height: 100%; object-fit: contain; object-position: center; border: 1px solid rgba(155,122,56,.25); border-radius: var(--radius-md); background: #eee8de; box-shadow: var(--shadow); }
 .gallery-grid img:first-child { grid-row: span 2; }
 .package-heading { margin-bottom: 24px; }
 .package-heading > p { max-width: 310px; margin: 0; }
 .variant-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .variant-card { display: grid; align-content: start; gap: 12px; padding: 24px; overflow: hidden; transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
 .variant-card:hover { transform: translateY(-3px); border-color: rgba(155,122,56,.5); box-shadow: 0 20px 44px rgba(46,37,24,.12); }
-.variant-card > img { width: calc(100% + 48px); max-width: none; height: 180px; margin: -24px -24px 6px; object-fit: cover; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+.variant-card > img { width: calc(100% + 48px); max-width: none; height: 180px; margin: -24px -24px 6px; object-fit: contain; object-position: center; border-radius: var(--radius-md) var(--radius-md) 0 0; background: #eee8de; }
 .variant-card h3, .variant-card p { margin: 0; }
 .selected-variant { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .selected-variant p { margin-bottom: 0; }
@@ -223,6 +224,7 @@ h3 { font-size: 20px; margin-bottom: 10px; }
 .carousel__viewport { position: relative; overflow: hidden; min-height: 520px; border: 1px solid rgba(155,122,56,.28); border-radius: var(--radius-lg); background: #e7e0d4; box-shadow: var(--shadow); }
 .carousel__slide { position: absolute; inset: 0; margin: 0; animation: image-enter .35s ease-out both; }
 .carousel__slide img { width: 100%; height: 100%; object-fit: cover; }
+.package-details .carousel__slide img { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; object-position: center; transform: none; }
 .carousel__arrow { position: absolute; top: 50%; z-index: 2; width: 48px; height: 48px; border: 1px solid rgba(155,122,56,.3); border-radius: 50%; background: rgba(255,253,249,.92); color: var(--text); box-shadow: 0 8px 24px rgba(46,37,24,.18); font-size: 23px; cursor: pointer; transform: translateY(-50%); transition: transform .18s ease, background .18s ease; }
 .carousel__arrow:hover { background: white; transform: translateY(-50%) scale(1.08); }
 .carousel__arrow--prev { left: 16px; }

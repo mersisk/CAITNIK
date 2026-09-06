@@ -247,16 +247,16 @@ function renderLegalPage(type) {
 }
 
 function carouselMarkup(images, label, autoplay = false, interval = 4500) {
+  const hasMultipleImages = images.length > 1;
   return `<div class="carousel" data-carousel data-autoplay="${autoplay}" data-interval="${interval}" role="region" aria-roledescription="карусель" aria-label="${escapeHtml(label)}">
     <div class="carousel__viewport" aria-live="${autoplay ? "off" : "polite"}">
       ${images.map((image, index) => {
         const photo = typeof image === "string" ? { src: image, alt: `${label}, фотография ${index + 1}` } : image;
         return `<figure class="carousel__slide" ${index ? "hidden" : ""} data-slide role="group" aria-roledescription="слайд" aria-label="${index + 1} из ${images.length}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt)}" decoding="async" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}></figure>`;
       }).join("")}
-      <button class="carousel__arrow carousel__arrow--prev" type="button" data-carousel-prev aria-label="Предыдущая фотография">←</button>
-      <button class="carousel__arrow carousel__arrow--next" type="button" data-carousel-next aria-label="Следующая фотография">→</button>
+      ${hasMultipleImages ? '<button class="carousel__arrow carousel__arrow--prev" type="button" data-carousel-prev aria-label="Предыдущая фотография">←</button><button class="carousel__arrow carousel__arrow--next" type="button" data-carousel-next aria-label="Следующая фотография">→</button>' : ""}
     </div>
-    <div class="carousel__controls"><div class="carousel__dots" aria-label="Выбор фотографии">${images.map((_, index) => `<button type="button" data-carousel-dot="${index}" aria-label="Показать фотографию ${index + 1}" ${index ? "" : 'aria-current="true"'}></button>`).join("")}</div>${autoplay ? '<button class="carousel__pause" type="button" data-carousel-pause>Пауза</button>' : ""}</div>
+    ${hasMultipleImages ? `<div class="carousel__controls"><div class="carousel__dots" aria-label="Выбор фотографии">${images.map((_, index) => `<button type="button" data-carousel-dot="${index}" aria-label="Показать фотографию ${index + 1}" ${index ? "" : 'aria-current="true"'}></button>`).join("")}</div>${autoplay ? '<button class="carousel__pause" type="button" data-carousel-pause>Пауза</button>' : ""}</div>` : ""}
   </div>`;
 }
 
@@ -422,13 +422,13 @@ function renderCatalog() {
           ${activeEvent ? `
             ${packages.length ? `<div class="package-grid">
               ${packages.map((item) => `
-                <a class="package-card card-link" href="#/package?id=${encodeURIComponent(item.id)}" aria-label="${escapeHtml(item.name)} — ${item.directOrder ? "посмотреть фотографии" : "посмотреть варианты"}">
+                <a class="package-card card-link" href="#/package?id=${encodeURIComponent(item.id)}" aria-label="${escapeHtml(item.name)} — ${item.directOrder || item.informational ? "посмотреть фотографии" : "посмотреть варианты"}">
                   <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}: пример оформления" loading="lazy">
                   <div class="package-card__body">
                     <p class="price">${escapeHtml(item.price)}</p>
                     <h2>${escapeHtml(item.name)}</h2>
                     <p>${escapeHtml(item.includes)}</p>
-                    <span class="card-link__action">${item.directOrder ? "Посмотреть фотографии" : "Открыть варианты"} <span aria-hidden="true">→</span></span>
+                    <span class="card-link__action">${item.directOrder || item.informational ? "Посмотреть фотографии" : "Открыть варианты"} <span aria-hidden="true">→</span></span>
                   </div>
                 </a>
               `).join("")}
@@ -494,7 +494,7 @@ function renderPackage() {
     </div>
   ` : `
     <div class="gallery-grid" aria-label="Примеры оформления">
-      ${detail.gallery.map((image, index) => `<img src="${escapeHtml(image)}" alt="${escapeHtml(detail.heading)}: место для фотографии ${index + 1}" loading="${index ? "lazy" : "eager"}">`).join("")}
+      ${detail.gallery.map((image, index) => `<img src="${escapeHtml(image)}" alt="${escapeHtml(detail.heading)}: пример оформления ${index + 1}" loading="${index ? "lazy" : "eager"}">`).join("")}
     </div>
     <div class="section-heading package-heading">
       <div><p class="eyebrow">Выберите стоимость</p><h2>Варианты по бюджету</h2></div>
@@ -503,7 +503,7 @@ function renderPackage() {
     <div class="variant-grid">
       ${detail.variants.map((variant) => `
         <a class="variant-card card-link" href="#/variant?id=${encodeURIComponent(variant.id)}&package=${encodeURIComponent(selectedPackage.id)}" aria-label="${escapeHtml(variant.name)} — посмотреть примеры">
-          <img src="${escapeHtml(variant.image)}" alt="${escapeHtml(variant.name)}: место для фотографии">
+          <img src="${escapeHtml(variant.image)}" alt="${escapeHtml(variant.name)}: пример оформления">
           <p class="price">${escapeHtml(variant.price)}</p>
           <h3>${escapeHtml(variant.name)}</h3>
           <p>${escapeHtml(variant.includes)}</p>
@@ -577,7 +577,7 @@ function renderVariant() {
           <p class="eyebrow">${escapeHtml(detail.heading)}</p>
           <p class="price">${escapeHtml(variant.price)}</p>
           <h1>${escapeHtml(variant.name)}</h1>
-          <p class="lead">${variant.example ? "Здесь будут четыре фотографии-примера этого ценового уровня. Конкретное оформление создаётся по вашим пожеланиям и может отличаться от показанных работ." : "Посмотрите места для будущих фотографий этого оформления. Финальные цвета, размер и детали согласуем перед заказом."}</p>
+          <p class="lead">${variant.example ? "Здесь показаны четыре фотографии-примера этого ценового уровня. Конкретное оформление создаётся по вашим пожеланиям и может отличаться от показанных работ." : "Посмотрите фотографии-примеры этого оформления. Финальные цвета, размер и детали согласуем перед заказом."}</p>
           <p class="market-note">${variant.example ? "Вы выбираете ценовой уровень, а не композицию с фиксированным названием. Итоговый состав и стоимость согласуем перед заказом." : "Цена указана как временный ориентир и не является окончательной сметой."}</p>
         </div>
       </section>

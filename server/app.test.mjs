@@ -108,30 +108,32 @@ test("catalog: сохраняет ценовые уровни оформлени
   }
 });
 
-test("catalog: сохраняет самостоятельную услугу гендер-пати без вложенного тарифа", async () => {
-  const api = await startApi();
-  const application = validCatalogApplication();
-  application.event_type = "Гендер-пати";
-  application.cart_items = [{ id: "gender-extinguisher", name: "Другое название", price: "1 ₽", quantity: 1 }];
-  const response = await fetch(`${api.url}/api/applications`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(application),
-  });
-  assert.equal(response.status, 201);
-  assert.deepEqual(JSON.parse(api.calls[0].values[10]), [{
-    id: "gender-extinguisher",
-    name: "Гендерный огнетушитель",
-    price: "от 3 500 ₽",
-    quantity: 1,
-  }]);
+test("catalog: сохраняет самостоятельные услуги гендер-пати без вложенного тарифа", async () => {
+  const services = [
+    ["gender-extinguisher", "Гендерный огнетушитель", "от 2 500 ₽"],
+    ["gender-surprise-ball", "Гендерный шар-сюрприз", "от 4 000 ₽"],
+    ["gender-photo", "Фотозона для гендер-пати", "от 25 000 ₽"],
+  ];
+  for (const [id, name, price] of services) {
+    const api = await startApi();
+    const application = validCatalogApplication();
+    application.event_type = "Гендер-пати";
+    application.cart_items = [{ id, name: "Другое название", price: "1 ₽", quantity: 1 }];
+    const response = await fetch(`${api.url}/api/applications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(application),
+    });
+    assert.equal(response.status, 201);
+    assert.deepEqual(JSON.parse(api.calls[0].values[10]), [{ id, name, price, quantity: 1 }]);
+  }
 });
 
 test("catalog: сохраняет одиночные услуги юбилея, выписки, выпускного и компании", async () => {
   const services = [
     ["anniversary-decoration", "Юбилей", "Оформление юбилея", "от 25 000 ₽"],
-    ["maternity-decoration", "Выписка из роддома", "Оформление выписки из роддома", "от 25 000 ₽"],
-    ["graduation-decoration", "Выпускной", "Оформление выпускного", "от 30 000 ₽"],
+    ["maternity-decoration", "Выписка из роддома", "Оформление выписки из роддома", "от 15 000 ₽"],
+    ["graduation-decoration", "Выпускной", "Оформление выпускного", "от 35 000 ₽"],
     ["corporate-decoration", "Событие для компании", "Оформление события для компании", "от 30 000 ₽"],
   ];
   for (const [id, eventType, name, price] of services) {

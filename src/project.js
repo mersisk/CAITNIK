@@ -12,24 +12,26 @@ const photo = (label, tone = "rose", index = 1) => {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 };
 
-const variant = (id, name, price, includes, tone = "rose") => ({
+const assetGallery = (directory, filenames) => filenames.map((filename) => `./assets/${directory}/${filename}`);
+
+const numberedGallery = (directory, timestamp, count) => assetGallery(
+  directory,
+  Array.from({ length: count }, (_, index) => `photo_${index + 1}_${timestamp}.jpg`),
+);
+
+const variant = (id, name, price, includes, tone = "rose", images = []) => ({
   id,
   name,
   price,
   includes,
-  image: photo(name, tone),
-  gallery: [1, 2, 3, 4].map((index) => photo(name, tone, index)),
+  image: images[0] || photo(name, tone),
+  gallery: images.length ? images : [1, 2, 3, 4].map((index) => photo(name, tone, index)),
 });
 
-const exampleVariant = (id, name, price, includes, tone = "rose") => ({
-  ...variant(id, name, price, includes, tone),
+const exampleVariant = (id, name, price, includes, tone = "rose", images = []) => ({
+  ...variant(id, name, price, includes, tone, images),
   example: true,
 });
-
-const placeholderGallery = (label, tone = "rose", count = 4) => Array.from(
-  { length: count },
-  (_, index) => photo(label, tone, index + 1),
-);
 
 const events = [
   { id: "birthday", title: "День рождения", text: "Шары, фотозоны и оформление площадки для детских и взрослых праздников.", tone: "rose" },
@@ -47,43 +49,53 @@ const catalog = [
     id: "birthday-balloons", eventId: "birthday", name: "Воздушные шары", price: "от 2 500 ₽",
     includes: "Выберите подходящий ценовой уровень. Фотографии будут показывать примеры композиций, а цвета, количество и детали согласуются по вашим пожеланиям.", tone: "rose",
     variants: [
-      exampleVariant("birthday-balloons-2500", "Воздушные шары от 2 500 ₽", "от 2 500 ₽", "Четыре примера композиций этого ценового уровня. Точный состав создаётся по вашим пожеланиям.", "blue"),
-      exampleVariant("birthday-balloons-5000", "Воздушные шары от 5 000 ₽", "от 5 000 ₽", "Четыре примера композиций этого ценового уровня. Точный состав создаётся по вашим пожеланиям.", "gold"),
-      exampleVariant("birthday-balloons-7000", "Воздушные шары от 7 000 ₽", "от 7 000 ₽", "Четыре примера композиций этого ценового уровня. Точный состав создаётся по вашим пожеланиям.", "rose"),
+      exampleVariant("birthday-balloons-2500", "Воздушные шары от 2 500 ₽", "от 2 500 ₽", "Четыре примера композиций этого ценового уровня. Точный состав создаётся по вашим пожеланиям.", "blue", numberedGallery("Др/Композиции из шаров/от 2500 к", "2026-09-06_19-54-16", 4)),
+      exampleVariant("birthday-balloons-5000", "Воздушные шары от 5 000 ₽", "от 5 000 ₽", "Четыре примера композиций этого ценового уровня. Точный состав создаётся по вашим пожеланиям.", "gold", numberedGallery("Др/Композиции из шаров/от 5000 к", "2026-09-06_19-54-42", 4)),
+      exampleVariant("birthday-balloons-7000", "Воздушные шары от 7 000 ₽", "от 7 000 ₽", "Четыре примера композиций этого ценового уровня. Точный состав создаётся по вашим пожеланиям.", "rose", numberedGallery("Др/Композиции из шаров/от 7000 к", "2026-09-06_19-52-58", 4)),
     ],
   },
   {
     id: "birthday-photo", eventId: "birthday", name: "Фотозона на день рождения", price: "от 25 000 ₽",
     includes: "Выберите подходящий ценовой уровень. Фотографии будут показывать примеры работ, а тема, цвет, надпись и детали согласуются по вашим пожеланиям.", tone: "lilac",
     variants: [
-      exampleVariant("birthday-photo-25000", "Фотозона от 25 000 ₽", "от 25 000 ₽", "Четыре примера оформления этого ценового уровня. Точная фотозона создаётся по вашим пожеланиям.", "blue"),
-      exampleVariant("birthday-photo-35000", "Фотозона от 35 000 ₽", "от 35 000 ₽", "Четыре примера оформления этого ценового уровня. Точная фотозона создаётся по вашим пожеланиям.", "lilac"),
-      exampleVariant("birthday-photo-45000", "Фотозона от 45 000 ₽", "от 45 000 ₽", "Четыре примера оформления этого ценового уровня. Точная фотозона создаётся по вашим пожеланиям.", "gold"),
+      exampleVariant("birthday-photo-25000", "Фотозона от 25 000 ₽", "от 25 000 ₽", "Четыре примера оформления этого ценового уровня. Точная фотозона создаётся по вашим пожеланиям.", "blue", numberedGallery("Др/Фотозона на день рождение/от 25 000к", "2026-09-06_20-28-23", 4)),
+      exampleVariant("birthday-photo-35000", "Фотозона от 35 000 ₽", "от 35 000 ₽", "Четыре примера оформления этого ценового уровня. Точная фотозона создаётся по вашим пожеланиям.", "lilac", assetGallery("Др/Фотозона на день рождение/от 35 000 к", [
+        "photo_1_2026-09-06_20-29-15.jpg",
+        "photo_2_2026-09-06_20-29-15.jpg",
+        "photo_2_2026-09-06_20-31-40.jpg",
+        "photo_3_2026-09-06_20-29-15.jpg",
+      ])),
+      exampleVariant("birthday-photo-45000", "Фотозона от 45 000 ₽", "от 45 000 ₽", "Четыре примера оформления этого ценового уровня. Точная фотозона создаётся по вашим пожеланиям.", "gold", assetGallery("Др/Фотозона на день рождение/от 45 000 к", [
+        "photo_1_2026-09-06_20-32-44.jpg",
+        "photo_2_2026-09-06_20-32-44.jpg",
+        "photo_3_2026-09-06_20-32-45.jpg",
+        "photo_4_2026-09-06_20-32-45.jpg",
+      ])),
     ],
   },
   {
     id: "wedding-photo", eventId: "wedding", name: "Свадебная фотозона", price: "от 25 000 ₽",
     includes: "Выберите подходящий ценовой уровень. Фотографии будут показывать примеры работ, а цвет, форма, надпись и детали оформления согласуются по вашим пожеланиям.", tone: "sage",
     variants: [
-      exampleVariant("wedding-photo-25000", "Фотозона от 25 000 ₽", "от 25 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "sage"),
-      exampleVariant("wedding-photo-35000", "Фотозона от 35 000 ₽", "от 35 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "rose"),
-      exampleVariant("wedding-photo-45000", "Фотозона от 45 000 ₽", "от 45 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "gold"),
+      exampleVariant("wedding-photo-25000", "Фотозона от 25 000 ₽", "от 25 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "sage", numberedGallery("свадьба/Свадебная фотозона/от 25 000", "2026-09-06_21-44-59", 4)),
+      exampleVariant("wedding-photo-35000", "Фотозона от 35 000 ₽", "от 35 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "rose", numberedGallery("свадьба/Свадебная фотозона/от 35 000", "2026-09-06_21-45-37", 4)),
+      exampleVariant("wedding-photo-45000", "Фотозона от 45 000 ₽", "от 45 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "gold", numberedGallery("свадьба/Свадебная фотозона/от 45 000", "2026-09-06_21-46-06", 4)),
     ],
   },
   {
     id: "wedding-presidium", eventId: "wedding", name: "Президиум молодожёнов", price: "от 25 000 ₽",
     includes: "Выберите подходящий ценовой уровень. Фотографии будут показывать примеры работ, а фон, текстиль, цветы и декоративные детали согласуются по вашим пожеланиям.", tone: "gold",
     variants: [
-      exampleVariant("wedding-presidium-25000", "Президиум от 25 000 ₽", "от 25 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "sage"),
-      exampleVariant("wedding-presidium-35000", "Президиум от 35 000 ₽", "от 35 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "rose"),
-      exampleVariant("wedding-presidium-45000", "Президиум от 45 000 ₽", "от 45 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "gold"),
+      exampleVariant("wedding-presidium-25000", "Президиум от 25 000 ₽", "от 25 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "sage", numberedGallery("свадьба/Президиум/от 25 000", "2026-09-06_21-46-40", 4)),
+      exampleVariant("wedding-presidium-35000", "Президиум от 35 000 ₽", "от 35 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "rose", numberedGallery("свадьба/Президиум/от 35 000", "2026-09-06_21-46-52", 4)),
+      exampleVariant("wedding-presidium-45000", "Президиум от 45 000 ₽", "от 45 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "gold", numberedGallery("свадьба/Президиум/от 45 000", "2026-09-06_21-47-08", 4)),
     ],
   },
   {
-    id: "wedding-ceremony", eventId: "wedding", name: "Выездная регистрация", price: "от 35 000 ₽",
+    id: "wedding-ceremony", eventId: "wedding", name: "Выездная регистрация", price: "от 30 000 ₽",
     includes: "Оформляем место церемонии в общей стилистике свадьбы. На странице будут фотографии-примеры, а точный состав согласуется для выбранной площадки.", tone: "rose",
     informational: true,
-    gallery: placeholderGallery("Выездная регистрация", "rose", 4),
+    gallery: numberedGallery("свадьба/Выездная регистрация", "2026-09-06_21-51-26", 8),
     inclusions: [
       "церемониальный фон или арка",
       "текстиль и декоративные композиции",
@@ -93,10 +105,30 @@ const catalog = [
     variants: [],
   },
   {
-    id: "wedding-hall", eventId: "wedding", name: "Оформление свадебного зала", price: "Расчёт индивидуально",
+    id: "wedding-hall", eventId: "wedding", name: "Оформление свадебного зала", price: "Расчёт индивидуальный",
     includes: "Оформляем пространство зала в единой стилистике свадьбы. Состав подбирается под площадку, число гостей и пожелания пары.", tone: "sage",
     informational: true,
-    gallery: placeholderGallery("Оформление свадебного зала", "sage", 6),
+    gallery: assetGallery("свадьба/Офрмление свадебного зала", [
+      "photo_1_2026-09-06_22-29-11.jpg",
+      "photo_1_2026-09-06_22-30-00.jpg",
+      "photo_2_2026-09-06_22-29-11.jpg",
+      "photo_3_2026-09-06_22-29-11.jpg",
+      "photo_4_2026-09-06_22-29-11.jpg",
+      "photo_5_2026-09-06_22-29-11.jpg",
+      "photo_6_2026-09-06_22-29-11.jpg",
+      "photo_7_2026-09-06_22-29-11.jpg",
+      "photo_8_2026-09-06_22-29-11.jpg",
+      "photo_9_2026-09-06_22-29-11.jpg",
+      "photo_10_2026-09-06_22-29-11.jpg",
+      "photo_11_2026-09-06_22-29-11.jpg",
+      "photo_12_2026-09-06_22-29-11.jpg",
+      "photo_13_2026-09-06_22-29-11.jpg",
+      "photo_14_2026-09-06_22-29-11.jpg",
+      "photo_15_2026-09-06_22-29-11.jpg",
+      "photo_16_2026-09-06_22-29-11.jpg",
+      "photo_17_2026-09-06_22-29-11.jpg",
+      "photo_18_2026-09-06_22-29-11.jpg",
+    ]),
     inclusions: [
       "столик на колёсах для свадебного торта",
       "текстильные салфетки и скатерти",
@@ -107,10 +139,10 @@ const catalog = [
     variants: [],
   },
   {
-    id: "wedding-full", eventId: "wedding", name: "Свадьба под ключ", price: "Расчёт индивидуально",
+    id: "wedding-full", eventId: "wedding", name: "Свадьба под ключ", price: "Расчёт индивидуальный",
     includes: "Все основные зоны свадьбы оформляются в одной концепции. Итоговый состав и стоимость рассчитываются после обсуждения площадки, количества гостей и пожеланий пары.", tone: "gold",
     informational: true,
-    gallery: placeholderGallery("Свадьба под ключ", "gold", 6),
+    gallery: numberedGallery("свадьба/Свальба под ключ", "2026-09-06_23-24-06", 21),
     inclusions: [
       "свадебная фотозона",
       "президиум молодожёнов",
@@ -121,52 +153,72 @@ const catalog = [
     variants: [],
   },
   {
-    id: "gender-extinguisher", eventId: "gender", name: "Гендерный огнетушитель", price: "от 3 500 ₽",
+    id: "gender-extinguisher", eventId: "gender", name: "Гендерный огнетушитель", price: "от 2 500 ₽",
     includes: "Яркое облако голубого или розового цвета для эффектного раскрытия пола малыша на открытой площадке.", tone: "blue",
     directOrder: true,
-    gallery: placeholderGallery("Гендерный огнетушитель", "blue", 4),
+    gallery: numberedGallery("Гендер пати/Гендерный огнетушитель", "2026-09-06_22-47-11", 1),
     variants: [],
   },
   {
-    id: "gender-surprise-ball", eventId: "gender", name: "Гендерный шар-сюрприз", price: "от 2 500 ₽",
+    id: "gender-surprise-ball", eventId: "gender", name: "Гендерный шар-сюрприз", price: "от 4 000 ₽",
     includes: "Большой непрозрачный шар с голубым или розовым конфетти, цвет которого становится виден после хлопка.", tone: "lilac",
     directOrder: true,
-    gallery: placeholderGallery("Гендерный шар-сюрприз", "lilac", 4),
+    gallery: numberedGallery("Гендер пати/Гендерный шар-сюрприз", "2026-09-06_22-47-26", 5),
     variants: [],
   },
   {
-    id: "gender-photo", eventId: "gender", name: "Фотозона для гендер-пати", price: "от 20 000 ₽",
+    id: "gender-photo", eventId: "gender", name: "Фотозона для гендер-пати", price: "от 25 000 ₽",
     includes: "Фотозона в выбранной стилистике с фоном, воздушными шарами и индивидуальной надписью.", tone: "rose",
     directOrder: true,
-    gallery: placeholderGallery("Фотозона для гендер-пати", "rose", 4),
+    gallery: numberedGallery("Гендер пати/Фотозона для гендер-пати", "2026-09-06_22-47-56", 7),
     variants: [],
   },
   {
     id: "anniversary-decoration", eventId: "anniversary", name: "Оформление юбилея", price: "от 25 000 ₽",
     includes: "Оформление праздничного пространства в выбранной стилистике с декором для памятных фотографий.", tone: "gold",
     directOrder: true,
-    gallery: placeholderGallery("Оформление юбилея", "gold", 4),
+    gallery: assetGallery("Юбилей", [
+      "photo_1_2026-09-06_22-53-08.jpg",
+      "photo_1_2026-09-06_22-59-18.jpg",
+      "photo_1_2026-09-06_23-24-59.jpg",
+      "photo_2_2026-09-06_22-59-18.jpg",
+      "photo_2_2026-09-06_23-24-59.jpg",
+      "photo_3_2026-09-06_22-59-18.jpg",
+      "photo_4_2026-09-06_22-59-18.jpg",
+      "photo_5_2026-09-06_22-59-18.jpg",
+      "photo_6_2026-09-06_22-59-18.jpg",
+    ]),
     variants: [],
   },
   {
-    id: "graduation-decoration", eventId: "graduation", name: "Оформление выпускного", price: "от 30 000 ₽",
+    id: "graduation-decoration", eventId: "graduation", name: "Оформление выпускного", price: "от 35 000 ₽",
     includes: "Оформление выпускного с памятной фотозоной, годом выпуска и декоративными деталями.", tone: "blue",
     directOrder: true,
-    gallery: placeholderGallery("Оформление выпускного", "blue", 4),
+    gallery: assetGallery("Выпускной", [
+      "photo_1_2026-09-06_22-53-39.jpg",
+      "photo_1_2026-09-06_23-00-00.jpg",
+      "photo_2_2026-09-06_22-53-39.jpg",
+      "photo_2_2026-09-06_23-00-00.jpg",
+      "photo_3_2026-09-06_23-00-00.jpg",
+      "photo_4_2026-09-06_23-00-00.jpg",
+      "photo_5_2026-09-06_23-00-00.jpg",
+      "photo_6_2026-09-06_23-00-00.jpg",
+      "photo_7_2026-09-06_23-00-00.jpg",
+    ]),
     variants: [],
   },
   {
     id: "first-birthday-photozone", eventId: "first-birthday", name: "Оформление фотозоны на годовасие", price: "от 15 000 ₽",
     includes: "Фотозона для первого дня рождения с фоном, цифрой, именем ребёнка, воздушными шарами и монтажом.", tone: "blue",
     directOrder: true,
-    gallery: placeholderGallery("Оформление фотозоны на годовасие", "blue", 4),
+    gallery: numberedGallery("Годовасие", "2026-09-06_22-29-47", 7),
     variants: [],
   },
   {
-    id: "maternity-decoration", eventId: "maternity", name: "Оформление выписки из роддома", price: "от 25 000 ₽",
+    id: "maternity-decoration", eventId: "maternity", name: "Оформление выписки из роддома", price: "от 15 000 ₽",
     includes: "Праздничное оформление встречи малыша с воздушными шарами, именной надписью и зоной для семейных фотографий.", tone: "rose",
     directOrder: true,
-    gallery: placeholderGallery("Оформление выписки из роддома", "rose", 4),
+    gallery: numberedGallery("Выписка из роддома", "2026-09-06_23-04-57", 7),
     variants: [],
   },
   {
@@ -174,10 +226,33 @@ const catalog = [
     includes: "Оформление корпоративного события в стилистике и цветах компании.", tone: "blue",
     directOrder: true,
     checkoutDirect: true,
-    gallery: placeholderGallery("Оформление события для компании", "blue", 4),
+    gallery: assetGallery("Событие для компании", [
+      "photo_1_2026-09-06_22-51-05.jpg",
+      "photo_1_2026-09-06_23-15-58.jpg",
+      "photo_1_2026-09-06_23-16-21.jpg",
+      "photo_1_2026-09-06_23-22-30.jpg",
+      "photo_2_2026-09-06_22-51-05.jpg",
+      "photo_2_2026-09-06_23-15-58.jpg",
+      "photo_2_2026-09-06_23-22-30.jpg",
+      "photo_3_2026-09-06_22-51-05.jpg",
+      "photo_3_2026-09-06_23-15-58.jpg",
+      "photo_3_2026-09-06_23-22-30.jpg",
+      "photo_4_2026-09-06_22-51-05.jpg",
+      "photo_4_2026-09-06_23-15-58.jpg",
+      "photo_5_2026-09-06_22-51-05.jpg",
+      "photo_5_2026-09-06_23-15-58.jpg",
+      "photo_6_2026-09-06_23-15-58.jpg",
+      "photo_7_2026-09-06_23-15-58.jpg",
+    ]),
     variants: [],
   },
 ];
+
+const eventsWithPhotos = events.map((event) => {
+  const firstService = catalog.find((item) => item.eventId === event.id);
+  const image = firstService?.gallery?.[0] || firstService?.variants?.[0]?.image || photo(event.title, event.tone);
+  return { ...event, image };
+});
 
 export const project = {
   name: "Арт-деко",
@@ -247,7 +322,7 @@ export const project = {
     note: "Заполните карточку события — заявка сохранится, и декоратор сможет связаться с вами.",
     submitLabel: "Отправить заявку",
   },
-  events,
+  events: eventsWithPhotos,
   packages: catalog.map(({ variants = [], tone, ...item }) => ({
     ...item,
     image: item.gallery?.[0] || variants[0]?.image || photo(item.name, tone),
