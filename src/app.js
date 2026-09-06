@@ -457,6 +457,45 @@ function renderPackage() {
   }
 
   const event = project.events.find((item) => item.id === selectedPackage.eventId);
+  const packageContent = detail.informational ? `
+    <div class="variant-showcase package-information">
+      ${carouselMarkup(detail.gallery, detail.heading)}
+      <aside class="selected-variant panel">
+        <div>
+          <p class="eyebrow">Что может входить</p>
+          <h2>Состав оформления</h2>
+          <ul class="inclusion-list">
+            ${detail.inclusions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>
+          <p class="market-note">Состав, материалы и итоговая стоимость согласуются индивидуально после обсуждения площадки и пожеланий пары.</p>
+        </div>
+        <div class="information-actions">
+          <p class="price">${escapeHtml(selectedPackage.price)}</p>
+          <a class="button" href="#/request?type=custom">Заказать оформление</a>
+        </div>
+      </aside>
+    </div>
+  ` : `
+    <div class="gallery-grid" aria-label="Примеры оформления">
+      ${detail.gallery.map((image, index) => `<img src="${escapeHtml(image)}" alt="${escapeHtml(detail.heading)}: место для фотографии ${index + 1}" loading="${index ? "lazy" : "eager"}">`).join("")}
+    </div>
+    <div class="section-heading package-heading">
+      <div><p class="eyebrow">Выберите стоимость</p><h2>Варианты по бюджету</h2></div>
+      <p class="muted">Фотографии будут примерами. Точное оформление создаётся по вашим пожеланиям.</p>
+    </div>
+    <div class="variant-grid">
+      ${detail.variants.map((variant) => `
+        <a class="variant-card card-link" href="#/variant?id=${encodeURIComponent(variant.id)}&package=${encodeURIComponent(selectedPackage.id)}" aria-label="${escapeHtml(variant.name)} — посмотреть примеры">
+          <img src="${escapeHtml(variant.image)}" alt="${escapeHtml(variant.name)}: место для фотографии">
+          <p class="price">${escapeHtml(variant.price)}</p>
+          <h3>${escapeHtml(variant.name)}</h3>
+          <p>${escapeHtml(variant.includes)}</p>
+          <span class="card-link__action">Посмотреть примеры <span aria-hidden="true">→</span></span>
+        </a>
+      `).join("")}
+    </div>
+    ${cartSummary()}
+  `;
   renderShell({
     title: `${detail.heading} — ${project.name}`,
     nav: nav("/catalog"),
@@ -471,29 +510,13 @@ function renderPackage() {
       </section>
       <section class="section section--soft package-details">
         <div class="container">
-          <div class="gallery-grid" aria-label="Примеры оформления">
-            ${detail.gallery.map((image, index) => `<img src="${escapeHtml(image)}" alt="${escapeHtml(detail.heading)}: пример оформления ${index + 1}" loading="${index ? "lazy" : "eager"}">`).join("")}
-          </div>
-          <div class="section-heading package-heading">
-            <div><p class="eyebrow">Выберите масштаб</p><h2>Варианты оформления</h2></div>
-            <p class="muted">Точная смета зависит от площадки, сезона и числа гостей.</p>
-          </div>
-          <div class="variant-grid">
-            ${detail.variants.map((variant) => `
-              <a class="variant-card card-link" href="#/variant?id=${encodeURIComponent(variant.id)}&package=${encodeURIComponent(selectedPackage.id)}" aria-label="${escapeHtml(variant.name)} — посмотреть оформление">
-                <img src="${escapeHtml(variant.image)}" alt="${escapeHtml(variant.name)}: место для будущей фотографии">
-                <p class="price">${escapeHtml(variant.price)}</p>
-                <h3>${escapeHtml(variant.name)}</h3>
-                <p>${escapeHtml(variant.includes)}</p>
-                <span class="card-link__action">Открыть оформление <span aria-hidden="true">→</span></span>
-              </a>
-            `).join("")}
-          </div>
-          ${cartSummary()}
+          ${packageContent}
         </div>
       </section>
     `,
   });
+
+  if (detail.informational) bindCarousels();
 
 }
 
@@ -519,8 +542,8 @@ function renderVariant() {
           <p class="eyebrow">${escapeHtml(detail.heading)}</p>
           <p class="price">${escapeHtml(variant.price)}</p>
           <h1>${escapeHtml(variant.name)}</h1>
-          <p class="lead">Посмотрите места для будущих фотографий этого оформления. Финальные цвета, размер и детали согласуем перед заказом.</p>
-          <p class="market-note">Цена указана как временный ориентир и не является окончательной сметой.</p>
+          <p class="lead">${variant.example ? "Здесь будут четыре фотографии-примера этого ценового уровня. Конкретное оформление создаётся по вашим пожеланиям и может отличаться от показанных работ." : "Посмотрите места для будущих фотографий этого оформления. Финальные цвета, размер и детали согласуем перед заказом."}</p>
+          <p class="market-note">${variant.example ? "Вы выбираете ценовой уровень, а не композицию с фиксированным названием. Итоговый состав и стоимость согласуем перед заказом." : "Цена указана как временный ориентир и не является окончательной сметой."}</p>
         </div>
       </section>
       <section class="section section--soft package-details">

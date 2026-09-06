@@ -21,6 +21,16 @@ const variant = (id, name, price, includes, tone = "rose") => ({
   gallery: [1, 2, 3, 4].map((index) => photo(name, tone, index)),
 });
 
+const exampleVariant = (id, name, price, includes, tone = "rose") => ({
+  ...variant(id, name, price, includes, tone),
+  example: true,
+});
+
+const placeholderGallery = (label, tone = "rose", count = 4) => Array.from(
+  { length: count },
+  (_, index) => photo(label, tone, index + 1),
+);
+
 const events = [
   { id: "birthday", title: "День рождения", text: "Шары, фотозоны и оформление площадки для детских и взрослых праздников.", tone: "rose" },
   { id: "wedding", title: "Свадьба", text: "Фотозоны, церемония, президиум, гостевые столы и оформление под ключ.", tone: "sage" },
@@ -65,60 +75,63 @@ const catalog = [
     ],
   },
   {
-    id: "wedding-details", eventId: "wedding", name: "Свадебные детали", price: "от 2 500 ₽",
-    includes: "Отдельные элементы, которые можно добавить к основному оформлению.", tone: "sage",
+    id: "wedding-photo", eventId: "wedding", name: "Свадебная фотозона", price: "от 25 000 ₽",
+    includes: "Выберите подходящий ценовой уровень. Фотографии будут показывать примеры работ, а цвет, форма, надпись и детали оформления согласуются по вашим пожеланиям.", tone: "sage",
     variants: [
-      variant("wedding-details-tables", "Композиции на гостевые столы", "от 2 500 ₽", "Небольшие цветочные или декоративные композиции для одного стола.", "sage"),
-      variant("wedding-details-couple", "Декор стола молодожёнов", "от 3 000 ₽", "Текстиль, свечи и небольшая композиция без оформления заднего фона.", "gold"),
-      variant("wedding-details-bouquet", "Букет невесты", "от 4 500 ₽", "Сезонные цветы, сборка букета и декоративная лента.", "rose"),
-      variant("wedding-details-car", "Украшение свадебного автомобиля", "от 6 000 ₽", "Кольца, ленты и декоративные элементы на автомобиль.", "lilac"),
+      exampleVariant("wedding-photo-25000", "Фотозона от 25 000 ₽", "от 25 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "sage"),
+      exampleVariant("wedding-photo-35000", "Фотозона от 35 000 ₽", "от 35 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "rose"),
+      exampleVariant("wedding-photo-45000", "Фотозона от 45 000 ₽", "от 45 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид фотозоны создаётся по вашим пожеланиям.", "gold"),
     ],
   },
   {
-    id: "wedding-photo", eventId: "wedding", name: "Свадебная фотозона", price: "от 20 000 ₽",
-    includes: "Компактная зона для фотографий гостей и молодожёнов.", tone: "sage",
+    id: "wedding-presidium", eventId: "wedding", name: "Президиум молодожёнов", price: "от 25 000 ₽",
+    includes: "Выберите подходящий ценовой уровень. Фотографии будут показывать примеры работ, а фон, текстиль, цветы и декоративные детали согласуются по вашим пожеланиям.", tone: "gold",
     variants: [
-      variant("wedding-photo-panels", "Фотозона из панелей", "от 20 000 ₽", "Фигурные панели, надпись, небольшой цветочный акцент и монтаж.", "sage"),
-      variant("wedding-photo-banner", "Фотозона с персональным баннером", "от 20 000 ₽", "Фон с именами или датой, декоративный каркас и свет.", "blue"),
-      variant("wedding-photo-flowers", "Фотозона с цветочными акцентами", "от 30 000 ₽", "Панели, цветочные композиции, тумбы и персональная надпись.", "rose"),
+      exampleVariant("wedding-presidium-25000", "Президиум от 25 000 ₽", "от 25 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "sage"),
+      exampleVariant("wedding-presidium-35000", "Президиум от 35 000 ₽", "от 35 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "rose"),
+      exampleVariant("wedding-presidium-45000", "Президиум от 45 000 ₽", "от 45 000 ₽", "Четыре примера оформления этого ценового уровня. Точный вид президиума создаётся по вашим пожеланиям.", "gold"),
     ],
   },
   {
-    id: "wedding-photo-plus", eventId: "wedding", name: "Расширенная свадебная фотозона", price: "от 35 000 ₽",
-    includes: "Выразительный фон, крупные детали, свет и место для общей фотографии.", tone: "gold",
-    variants: [
-      variant("wedding-photo-fabric", "Фотозона из ткани", "от 35 000 ₽", "Многослойная драпировка, персональная надпись, свечи или цветы.", "rose"),
-      variant("wedding-photo-paillettes", "Фотозона с пайетками", "от 35 000 ₽", "Стена из пайеток, надпись или неон, свет и декоративные акценты.", "gold"),
-      variant("wedding-photo-sculptural", "Фотозона из фигурных панелей", "от 35 000 ₽", "Несколько панелей разной высоты, подиумы и цветочные композиции.", "sage"),
-      variant("wedding-photo-flower-wall", "Цветочная стена", "от 40 000 ₽", "Объёмный цветочный фон, надпись и направленный свет.", "lilac"),
+    id: "wedding-hall", eventId: "wedding", name: "Оформление свадебного зала", price: "Расчёт индивидуально",
+    includes: "Оформляем пространство зала в единой стилистике свадьбы. Состав подбирается под площадку, число гостей и пожелания пары.", tone: "sage",
+    informational: true,
+    gallery: placeholderGallery("Оформление свадебного зала", "sage", 6),
+    inclusions: [
+      "столик на колёсах для свадебного торта",
+      "текстильные салфетки и скатерти",
+      "декоративные или цветочные композиции на гостевые столы",
+      "чехлы и банты на стулья",
+      "согласование деталей, доставка и монтаж оформления",
     ],
+    variants: [],
   },
   {
-    id: "wedding-ceremony", eventId: "wedding", name: "Выездная регистрация", price: "от 25 000 ₽",
-    includes: "Церемониальная зона с аркой или фоном, дорожкой и монтажом.", tone: "rose",
-    variants: [
-      variant("wedding-ceremony-drape", "Арка с тканевой драпировкой", "от 25 000 ₽", "Каркас, многослойная ткань, небольшие цветочные акценты и дорожка.", "rose"),
-      variant("wedding-ceremony-floral", "Цветочная арка", "от 35 000 ₽", "Арка с объёмной флористикой, дорожка и оформление зоны церемонии.", "sage"),
-      variant("wedding-ceremony-panels", "Церемония с фигурными панелями", "от 40 000 ₽", "Сценический фон из панелей, цветы, свечи и проход к церемонии.", "gold"),
+    id: "wedding-ceremony", eventId: "wedding", name: "Выездная регистрация", price: "от 35 000 ₽",
+    includes: "Оформляем место церемонии в общей стилистике свадьбы. На странице будут фотографии-примеры, а точный состав согласуется для выбранной площадки.", tone: "rose",
+    informational: true,
+    gallery: placeholderGallery("Выездная регистрация", "rose", 4),
+    inclusions: [
+      "церемониальный фон или арка",
+      "текстиль и декоративные композиции",
+      "оформление прохода и зоны церемонии",
+      "доставка, монтаж и демонтаж по договорённости",
     ],
+    variants: [],
   },
   {
-    id: "wedding-presidium", eventId: "wedding", name: "Президиум молодожёнов", price: "от 10 000 ₽",
-    includes: "Стол молодожёнов и декоративный фон за ним.", tone: "gold",
-    variants: [
-      variant("wedding-presidium-light", "Лаконичный президиум", "от 10 000 ₽", "Текстиль, свечи, небольшая композиция и аккуратный задний фон.", "sage"),
-      variant("wedding-presidium-fabric", "Президиум с драпировкой", "от 15 000 ₽", "Тканевый фон, свет, текстиль и цветочные акценты.", "rose"),
-      variant("wedding-presidium-floral", "Президиум с цветами", "от 25 000 ₽", "Объёмный фон, крупная флористика, свечи и оформление стола.", "gold"),
+    id: "wedding-full", eventId: "wedding", name: "Свадьба под ключ", price: "Расчёт индивидуально",
+    includes: "Все основные зоны свадьбы оформляются в одной концепции. Итоговый состав и стоимость рассчитываются после обсуждения площадки, количества гостей и пожеланий пары.", tone: "gold",
+    informational: true,
+    gallery: placeholderGallery("Свадьба под ключ", "gold", 6),
+    inclusions: [
+      "свадебная фотозона",
+      "президиум молодожёнов",
+      "оформление свадебного зала",
+      "оформление выездной регистрации",
+      "единая концепция, согласование, доставка и монтаж",
     ],
-  },
-  {
-    id: "wedding-full", eventId: "wedding", name: "Оформление свадебной площадки", price: "от 30 000 ₽",
-    includes: "Несколько свадебных зон в единой палитре и стилистике.", tone: "sage",
-    variants: [
-      variant("wedding-full-hall", "Декор помещения", "от 30 000 ₽", "Президиум, текстиль, свечи и основные декоративные акценты.", "sage"),
-      variant("wedding-full-main", "Главные зоны свадьбы", "от 60 000 ₽", "Президиум, фотозона, welcome-зона и часть гостевых столов.", "rose"),
-      variant("wedding-full-all", "Свадьба под ключ", "от 90 000 ₽", "Церемония, фотозона, президиум, welcome-зона и оформление столов гостей.", "gold"),
-    ],
+    variants: [],
   },
   {
     id: "gender-reveal", eventId: "gender", name: "Сюрприз для гендер-пати", price: "от 2 500 ₽",
@@ -344,12 +357,17 @@ export const project = {
     submitLabel: "Отправить заявку",
   },
   events,
-  packages: catalog.map(({ variants, tone, ...item }) => ({ ...item, image: variants[0]?.image || photo(item.name, tone) })),
+  packages: catalog.map(({ variants = [], tone, ...item }) => ({
+    ...item,
+    image: item.gallery?.[0] || variants[0]?.image || photo(item.name, tone),
+  })),
 };
 
 export const packageDetails = Object.fromEntries(catalog.map((item) => [item.id, {
   heading: item.name,
   description: item.includes,
-  gallery: item.variants.slice(0, 3).map((entry) => entry.image),
-  variants: item.variants,
+  gallery: item.gallery?.length ? item.gallery : item.variants.slice(0, 3).map((entry) => entry.image),
+  variants: item.variants || [],
+  informational: Boolean(item.informational),
+  inclusions: item.inclusions || [],
 }]));

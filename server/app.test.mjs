@@ -65,6 +65,25 @@ test("catalog: сохраняет канонические позиции пар
   assert.equal(api.telegramCalls[0].id, 123);
 });
 
+test("catalog: сохраняет канонический ценовой уровень свадебной фотозоны", async () => {
+  const api = await startApi();
+  const application = validCatalogApplication();
+  application.event_type = "Свадьба";
+  application.cart_items = [{ id: "wedding-photo-35000", name: "Другое название", price: "1 ₽", quantity: 1 }];
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(application),
+  });
+  assert.equal(response.status, 201);
+  assert.deepEqual(JSON.parse(api.calls[0].values[10]), [{
+    id: "wedding-photo-35000",
+    name: "Фотозона от 35 000 ₽",
+    price: "от 35 000 ₽",
+    quantity: 1,
+  }]);
+});
+
 test("custom: требует wishes и пустую корзину", async () => {
   const api = await startApi();
   const application = validCatalogApplication();
