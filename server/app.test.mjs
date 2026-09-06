@@ -103,11 +103,12 @@ test("catalog: сохраняет самостоятельную услугу г
   }]);
 });
 
-test("catalog: сохраняет одиночные услуги юбилея, выписки и выпускного", async () => {
+test("catalog: сохраняет одиночные услуги юбилея, выписки, выпускного и компании", async () => {
   const services = [
     ["anniversary-decoration", "Юбилей", "Оформление юбилея", "от 25 000 ₽"],
     ["maternity-decoration", "Выписка из роддома", "Оформление выписки из роддома", "от 25 000 ₽"],
     ["graduation-decoration", "Выпускной", "Оформление выпускного", "от 30 000 ₽"],
+    ["corporate-decoration", "Событие для компании", "Оформление события для компании", "от 30 000 ₽"],
   ];
   for (const [id, eventType, name, price] of services) {
     const api = await startApi();

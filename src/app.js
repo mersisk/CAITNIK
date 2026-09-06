@@ -108,18 +108,18 @@ function clearCart() {
   saveCart();
 }
 
-function callPanel(requestHref = "#/request") {
+function callPanel(requestHref = "#/request", customEvent = false) {
   return `
     <aside class="call-panel panel" aria-labelledby="call-title">
       <div>
         <p class="eyebrow">Связь с декоратором</p>
-        <h2 id="call-title">Позвоните, чтобы обсудить оформление</h2>
-        <p>Назовите выбранные варианты — уточним свободную дату, размеры, состав и итоговую стоимость.</p>
+        <h2 id="call-title">${customEvent ? "Позвоните нам или оставьте заявку" : "Позвоните, чтобы обсудить оформление"}</h2>
+        <p>${customEvent ? "Вы можете позвонить прямо сейчас либо заполнить данные заказа. После отправки заявки декоратор сам свяжется с вами, чтобы обсудить идею и детали оформления." : "Назовите выбранные варианты — уточним свободную дату, размеры, состав и итоговую стоимость."}</p>
       </div>
       <div class="call-panel__actions">
         <a class="phone-link" href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>
         <a class="button" href="${escapeHtml(project.phone.href)}">Позвонить сейчас</a>
-        <a class="button button--secondary" href="${escapeHtml(requestHref)}">Заполнить данные заказа</a>
+        <a class="button button--secondary" href="${escapeHtml(requestHref)}">${customEvent ? "Заполнить заявку — мы свяжемся" : "Заполнить данные заказа"}</a>
       </div>
     </aside>
   `;
@@ -383,12 +383,12 @@ function renderCustomEvent() {
         <div class="container">
           <a class="back-link" href="#/catalog">← Вернуться в каталог</a>
           <p class="eyebrow">Другое событие</p>
-          <h1>Расскажите о празднике по телефону</h1>
-          <p class="lead">Если подходящего повода нет в каталоге, позвоните декоратору. Обсудим вашу идею, дату и подходящий вариант оформления.</p>
+          <h1>Выберите удобный способ связи</h1>
+          <p class="lead">Позвоните нам сейчас или заполните данные заказа — после отправки заявки декоратор свяжется с вами и обсудит праздник.</p>
         </div>
       </section>
       <section class="section section--soft">
-        <div class="container">${callPanel("#/request?type=custom")}</div>
+        <div class="container">${callPanel("#/request?type=custom", true)}</div>
       </section>
     `,
   });
@@ -469,7 +469,7 @@ function renderPackage() {
         </div>
         <div class="information-actions">
           <p class="price">${escapeHtml(selectedPackage.price)}</p>
-          <button id="add-selected-package" class="button" type="button">Добавить в корзину</button>
+          <button id="add-selected-package" class="button" type="button">${selectedPackage.checkoutDirect ? "Заказать" : "Добавить в корзину"}</button>
         </div>
       </aside>
     </div>
@@ -543,6 +543,10 @@ function renderPackage() {
       packageId: selectedPackage.id,
     });
     if (!added) return;
+    if (selectedPackage.checkoutDirect) {
+      location.hash = "/request";
+      return;
+    }
     renderPackage();
     mountFloatingCart();
     setNotice("Услуга добавлена в корзину.");

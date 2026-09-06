@@ -181,31 +181,12 @@ const catalog = [
     variants: [],
   },
   {
-    id: "corporate-photo", eventId: "corporate", name: "Брендированная фотозона", price: "от 20 000 ₽",
-    includes: "Фон с логотипом и цветами компании для гостей и команды.", tone: "blue",
-    variants: [
-      variant("corporate-photo-brandwall", "Бренд-волл", "от 20 000 ₽", "Печатный фон с логотипом, каркас и монтаж.", "blue"),
-      variant("corporate-photo-panels", "Фотозона из панелей", "от 30 000 ₽", "Фигурные панели, объёмный логотип и свет.", "sage"),
-      variant("corporate-photo-sequin", "Фотозона с пайетками", "от 35 000 ₽", "Пайетки в цветах бренда, логотип или неон и свет.", "gold"),
-    ],
-  },
-  {
-    id: "corporate-welcome", eventId: "corporate", name: "Welcome-зона компании", price: "от 29 000 ₽",
-    includes: "Входная точка, навигация и место первой встречи гостей.", tone: "blue",
-    variants: [
-      variant("corporate-welcome-sign", "Входная группа", "от 29 000 ₽", "Брендированная вывеска, стойки и декоративные композиции.", "blue"),
-      variant("corporate-welcome-register", "Welcome и регистрация", "от 40 000 ₽", "Стойка регистрации, навигация, фон и брендированные детали.", "sage"),
-      variant("corporate-welcome-full", "Брендированная зона встречи", "от 50 000 ₽", "Вход, регистрация, фототочка и декор в цветах компании.", "gold"),
-    ],
-  },
-  {
-    id: "corporate-interactive", eventId: "corporate", name: "Интерактивная фотозона", price: "от 45 000 ₽",
-    includes: "Фотозона с цифровыми эффектами и работой ассистента.", tone: "lilac",
-    variants: [
-      variant("corporate-interactive-two", "Kinect-фотозона — 2 часа", "от 45 000 ₽", "Интерактивный фон, печать фотографий, отправка на почту и ассистент.", "lilac"),
-      variant("corporate-interactive-three", "Kinect-фотозона — 3 часа", "от 50 000 ₽", "Интерактивная фотозона и ассистент на три часа.", "blue"),
-      variant("corporate-interactive-four", "Kinect-фотозона — 4 часа", "от 55 000 ₽", "Интерактивная фотозона и ассистент на четыре часа.", "gold"),
-    ],
+    id: "corporate-decoration", eventId: "corporate", name: "Оформление события для компании", price: "от 30 000 ₽",
+    includes: "Оформление корпоративного события в стилистике и цветах компании.", tone: "blue",
+    directOrder: true,
+    checkoutDirect: true,
+    gallery: placeholderGallery("Оформление события для компании", "blue", 4),
+    variants: [],
   },
 ];
 
