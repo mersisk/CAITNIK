@@ -41,8 +41,8 @@ function saveCart() {
 
 const nav = (active) => [
   { href: "#/", label: "Главная", active: active === "/" },
-  { href: "#/about", label: "О компании", active: active === "/about" },
   { href: "#/catalog", label: "Каталог", active: active === "/catalog" },
+  { href: "#/about", label: "О компании", active: active === "/about" },
   { href: "#/cart", label: `Корзина${cart.length ? ` · ${cart.length}` : ""}`, active: active === "/cart" },
 ];
 
