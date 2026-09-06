@@ -96,7 +96,7 @@ function customEventCard() {
       <div class="event-card__symbol" aria-hidden="true">✦</div>
       <div class="event-card__body">
         <h3>Другое событие</h3>
-        <p>Корпоратив, выписка из роддома, помолвка или необычная идея — расскажите, что нужно оформить.</p>
+        <p>Оформим даже праздник, для которого ещё не придумали название. Расскажите идею — мы найдём, как воплотить её в декоре.</p>
         <span class="text-link">Обсудить другое событие <span aria-hidden="true">→</span></span>
       </div>
     </a>

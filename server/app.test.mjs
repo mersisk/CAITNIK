@@ -84,6 +84,30 @@ test("catalog: сохраняет канонический ценовой уро
   }]);
 });
 
+test("catalog: сохраняет ценовые уровни оформления дня рождения", async () => {
+  const services = [
+    ["birthday-balloons-2500", "Воздушные шары от 2 500 ₽", "от 2 500 ₽"],
+    ["birthday-balloons-5000", "Воздушные шары от 5 000 ₽", "от 5 000 ₽"],
+    ["birthday-balloons-7000", "Воздушные шары от 7 000 ₽", "от 7 000 ₽"],
+    ["birthday-photo-25000", "Фотозона от 25 000 ₽", "от 25 000 ₽"],
+    ["birthday-photo-35000", "Фотозона от 35 000 ₽", "от 35 000 ₽"],
+    ["birthday-photo-45000", "Фотозона от 45 000 ₽", "от 45 000 ₽"],
+  ];
+  for (const [id, name, price] of services) {
+    const api = await startApi();
+    const application = validCatalogApplication();
+    application.event_type = "День рождения";
+    application.cart_items = [{ id, name: "Подменённое название", price: "1 ₽", quantity: 1 }];
+    const response = await fetch(`${api.url}/api/applications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(application),
+    });
+    assert.equal(response.status, 201);
+    assert.deepEqual(JSON.parse(api.calls[0].values[10]), [{ id, name, price, quantity: 1 }]);
+  }
+});
+
 test("catalog: сохраняет самостоятельную услугу гендер-пати без вложенного тарифа", async () => {
   const api = await startApi();
   const application = validCatalogApplication();
