@@ -679,7 +679,14 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
             <h1>${customRequest ? "Расскажите о вашем событии" : escapeHtml(project.form.title)}</h1>
             <p class="lead">${customRequest ? "Укажите основные сведения о празднике — по ним будет проще обсудить идею и рассчитать оформление." : escapeHtml(project.form.note)}</p>
             ${cart.length ? `<p class="selection-note"><strong>Выбрано:</strong> ${cart.map((item) => escapeHtml(item.name)).join(", ")}</p>` : '<p class="selection-note">Готовый вариант можно не выбирать: опишите идею в поле «Пожелания».</p>'}
-            <p class="local-data-note">После отправки заявка сохранится на сервере. Если вопрос срочный, позвоните по номеру <a href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>.</p>
+            <aside class="local-data-note" aria-label="Важная информация о заявке">
+              <span class="local-data-note__icon" aria-hidden="true">☎</span>
+              <div>
+                <strong>После отправки заявка сохранится</strong>
+                <span>Декоратор получит ваши данные и свяжется с вами. Если ответ нужен срочно, позвоните:</span>
+              </div>
+              <a class="local-data-note__phone" href="${escapeHtml(project.phone.href)}">${escapeHtml(project.phone.display)}</a>
+            </aside>
           </div>
           <form id="lead-form" class="panel stack" novalidate>
             <p class="form-required-note"><span aria-hidden="true">*</span> Обязательные поля</p>
