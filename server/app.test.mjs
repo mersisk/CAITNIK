@@ -44,6 +44,7 @@ function validCatalogApplication() {
     order_type: "catalog",
     wishes: "Тёплый свет",
     cart_items: [{ id: "romantic-table-candles", name: "Подменённое имя", price: "1 ₽", quantity: 1 }],
+    consent: true,
   };
 }
 
@@ -98,6 +99,26 @@ test("custom: принимает обязательную идею с пусто
   assert.equal(response.status, 201);
   assert.equal(api.calls[0].values[8], "custom");
   assert.deepEqual(JSON.parse(api.calls[0].values[10]), []);
+});
+
+test("не принимает заявку без явно подтверждённого consent=true", async () => {
+  for (const consent of [undefined, false, "true", 1]) {
+    const api = await startApi();
+    const application = validCatalogApplication();
+    if (consent === undefined) delete application.consent;
+    else application.consent = consent;
+    const response = await fetch(`${api.url}/api/applications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(application),
+    });
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.equal(body.success, false);
+    assert.equal(body.errors.consent, "Необходимо согласие на обработку персональных данных.");
+    assert.equal(api.calls.length, 0);
+    assert.equal(api.telegramCalls.length, 0);
+  }
 });
 
 test("проверяет формат и давность даты", async () => {

@@ -14,6 +14,7 @@ import {
   statusLabel,
 } from "./ui.js";
 import { renderStyleguide } from "./styleguide.js";
+import { renderPersonalDataConsent, renderPrivacyPolicy } from "./legal.js";
 
 const CART_KEY = "art_deco_cart_v1";
 
@@ -222,7 +223,7 @@ function floatingCart() {
 
 function mountFloatingCart() {
   qs(".floating-cart")?.remove();
-  if (route() === "/request" || !cart.length) return;
+  if (["/request", "/privacy", "/personal-data-consent"].includes(route()) || !cart.length) return;
   qs("#app")?.insertAdjacentHTML("beforeend", floatingCart());
 }
 
@@ -231,6 +232,15 @@ function renderMissingPage(title, message) {
     title: `${title} — ${project.name}`,
     nav: nav("/catalog"),
     content: `<section class="section"><div class="container"><a class="back-link" href="#/catalog">← Вернуться в каталог</a><div class="empty"><span class="empty__symbol" aria-hidden="true">✦</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p><a class="button" href="#/catalog">Выбрать праздник</a></div></div></section>`,
+  });
+}
+
+function renderLegalPage(type) {
+  const privacy = type === "privacy";
+  renderShell({
+    title: `${privacy ? "Политика обработки персональных данных" : "Согласие на обработку персональных данных"} — ${project.name}`,
+    nav: nav(""),
+    content: privacy ? renderPrivacyPolicy() : renderPersonalDataConsent(),
   });
 }
 
@@ -622,6 +632,13 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
             <label><span class="field-label">Место проведения <span class="required-mark" aria-hidden="true">*</span></span><input id="lead-venue" name="venue" autocomplete="street-address" maxlength="200" placeholder="Название площадки или адрес" aria-describedby="venue-help venue-error" required><span id="venue-help" class="help">Если площадка ещё не выбрана, напишите «Не выбрано».</span><span id="venue-error" class="field-error field-error--inline" hidden></span></label>
             <label><span class="field-label">Удобный мессенджер <span class="required-mark" aria-hidden="true">*</span></span><select id="lead-messenger" name="messenger" aria-describedby="messenger-help messenger-error" required><option value="">Выберите мессенджер</option><option value="Telegram">Telegram</option><option value="WhatsApp">WhatsApp</option></select><span id="messenger-help" class="help">Укажите, где вам удобнее получить ответ.</span><span id="messenger-error" class="field-error field-error--inline" hidden></span></label>
             <label><span class="field-label">Пожелания ${customRequest ? '<span class="required-mark" aria-hidden="true">*</span>' : '<span class="muted">(необязательно)</span>'}</span><textarea name="details" maxlength="2000" placeholder="Например: число гостей, цвета, стиль и особенности площадки" ${customRequest ? "required" : ""} aria-describedby="details-help details-error"></textarea><span id="details-help" class="help">${customRequest ? "Опишите идею индивидуального оформления." : "Расскажите всё, что важно учесть при оформлении."}</span><span id="details-error" class="field-error field-error--inline" hidden></span></label>
+            <div class="consent-field">
+              <label class="consent-control" for="lead-consent">
+                <input id="lead-consent" name="consent" type="checkbox" value="true" aria-describedby="consent-error" required>
+                <span>Я даю <a href="/personal-data-consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и ознакомлен(а) с <a href="/privacy" target="_blank" rel="noopener">Политикой обработки персональных данных</a>.</span>
+              </label>
+              <span id="consent-error" class="field-error field-error--inline" hidden></span>
+            </div>
             <p id="form-error" class="form-error-summary" role="alert" tabindex="-1" hidden></p>
             <button class="button" type="submit">${escapeHtml(project.form.submitLabel)}</button>
           </form>
@@ -669,6 +686,7 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
       order_type: orderType,
       wishes: details,
       cart_items: customRequest ? [] : cart.map(({ id, name, price }) => ({ id, name, price, quantity: 1 })),
+      consent: data.get("consent") === "true",
     };
     const summary = qs("#form-error", form);
     qsa("[aria-invalid]", form).forEach(clearFieldError);
@@ -683,6 +701,7 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
     if (!payload.messenger) errors.push(["messenger", "Выберите удобный мессенджер."]);
     if (!customRequest && !payload.cart_items.length) errors.push(["cart_items", "Добавьте хотя бы одну позицию из каталога."]);
     if (customRequest && !payload.wishes) errors.push(["details", "Опишите идею индивидуального оформления."]);
+    if (!payload.consent) errors.push(["consent", "Подтвердите согласие на обработку персональных данных."]);
     if (errors.length) {
       errors.forEach(([name, message]) => {
         const field = qs(`[name="${name}"]`, form);
@@ -864,6 +883,8 @@ async function render() {
   else if (current === "/about") renderAbout();
   else if (current === "/custom-event") renderCustomEvent();
   else if (current === "/request") renderRequest();
+  else if (current === "/privacy") renderLegalPage("privacy");
+  else if (current === "/personal-data-consent") renderLegalPage("consent");
   else if (current === "/styleguide") return renderStyleguide();
   else renderHome();
   mountFloatingCart();

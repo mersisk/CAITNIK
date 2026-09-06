@@ -117,6 +117,10 @@ export function validateApplication(input, { today = todayInVladivostok() } = {}
   const wishes = readString(input, "wishes", { required: false, max: 2000 }, errors);
   const phone = normalizePhone(rawPhone, errors);
 
+  if (input.consent !== true) {
+    errors.consent = "Необходимо согласие на обработку персональных данных.";
+  }
+
   if (eventDate && !validCalendarDate(eventDate)) errors.event_date = "Используйте формат YYYY-MM-DD.";
   else if (eventDate && eventDate < today) errors.event_date = "Дата события не может быть в прошлом.";
   if (messenger && !MESSENGERS.has(messenger)) errors.messenger = "Выберите доступный мессенджер.";
@@ -158,6 +162,7 @@ export function validateApplication(input, { today = todayInVladivostok() } = {}
       order_type: orderType,
       wishes,
       cart_items: cartItems,
+      consent: true,
     },
   };
 }

@@ -160,6 +160,7 @@ curl -i -X POST http://127.0.0.1:3000/api/applications \
     "event_type":"Романтический вечер",
     "order_type":"catalog",
     "wishes":"Тёплый свет",
+    "consent":true,
     "cart_items":[{
       "id":"romantic-table-candles",
       "name":"Вечер при свечах",
@@ -194,9 +195,14 @@ curl -i -X POST http://127.0.0.1:3000/api/applications \
     "event_type":"Индивидуальное оформление",
     "order_type":"custom",
     "wishes":"Цветочная арка у моря",
+    "consent":true,
     "cart_items":[]
   }'
 ```
+
+Оба сценария принимаются только с JSON boolean `"consent": true`. Отсутствие
+поля, `false` или строка `"true"` возвращают ошибку валидации до записи в БД.
+Структура таблицы при этом не меняется.
 
 ## 7. Загрузка проекта на VDS
 

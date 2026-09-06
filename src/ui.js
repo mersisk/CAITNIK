@@ -80,6 +80,8 @@ export function renderShell({ title, nav, content }) {
 }
 
 export function route() {
+  const cleanPath = location.pathname.replace(/\/+$/, "") || "/";
+  if (!location.hash && ["/privacy", "/personal-data-consent"].includes(cleanPath)) return cleanPath;
   const hash = location.hash.replace(/^#/, "") || "/";
   return hash.split("?")[0];
 }
