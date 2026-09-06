@@ -84,6 +84,25 @@ test("catalog: сохраняет канонический ценовой уро
   }]);
 });
 
+test("catalog: сохраняет самостоятельную услугу гендер-пати без вложенного тарифа", async () => {
+  const api = await startApi();
+  const application = validCatalogApplication();
+  application.event_type = "Гендер-пати";
+  application.cart_items = [{ id: "gender-extinguisher", name: "Другое название", price: "1 ₽", quantity: 1 }];
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(application),
+  });
+  assert.equal(response.status, 201);
+  assert.deepEqual(JSON.parse(api.calls[0].values[10]), [{
+    id: "gender-extinguisher",
+    name: "Гендерный огнетушитель",
+    price: "от 3 500 ₽",
+    quantity: 1,
+  }]);
+});
+
 test("custom: требует wishes и пустую корзину", async () => {
   const api = await startApi();
   const application = validCatalogApplication();

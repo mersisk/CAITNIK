@@ -6,6 +6,14 @@ const catalogItems = new Map();
 for (const selectedPackage of project.packages) {
   const eventType = eventsById.get(selectedPackage.eventId);
   const details = packageDetails[selectedPackage.id];
+  if (details?.directOrder) {
+    catalogItems.set(selectedPackage.id, {
+      id: selectedPackage.id,
+      name: selectedPackage.name,
+      price: selectedPackage.price,
+      eventType,
+    });
+  }
   for (const item of details?.variants || []) {
     catalogItems.set(item.id, {
       id: item.id,

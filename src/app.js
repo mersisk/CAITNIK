@@ -420,13 +420,13 @@ function renderCatalog() {
           ${activeEvent ? `
             ${packages.length ? `<div class="package-grid">
               ${packages.map((item) => `
-                <a class="package-card card-link" href="#/package?id=${encodeURIComponent(item.id)}" aria-label="${escapeHtml(item.name)} — посмотреть варианты">
+                <a class="package-card card-link" href="#/package?id=${encodeURIComponent(item.id)}" aria-label="${escapeHtml(item.name)} — ${item.directOrder ? "посмотреть фотографии" : "посмотреть варианты"}">
                   <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}: пример оформления" loading="lazy">
                   <div class="package-card__body">
                     <p class="price">${escapeHtml(item.price)}</p>
                     <h2>${escapeHtml(item.name)}</h2>
                     <p>${escapeHtml(item.includes)}</p>
-                    <span class="card-link__action">Открыть варианты <span aria-hidden="true">→</span></span>
+                    <span class="card-link__action">${item.directOrder ? "Посмотреть фотографии" : "Открыть варианты"} <span aria-hidden="true">→</span></span>
                   </div>
                 </a>
               `).join("")}
@@ -457,7 +457,22 @@ function renderPackage() {
   }
 
   const event = project.events.find((item) => item.id === selectedPackage.eventId);
-  const packageContent = detail.informational ? `
+  const packageContent = detail.directOrder ? `
+    <div class="variant-showcase package-information">
+      ${carouselMarkup(detail.gallery, detail.heading)}
+      <aside class="selected-variant panel">
+        <div>
+          <p>${escapeHtml(detail.description)}</p>
+          <p class="market-note">Фотографии показывают примеры. Цвет, оформление и итоговую стоимость согласуем перед заказом.</p>
+        </div>
+        <div class="information-actions">
+          <p class="price">${escapeHtml(selectedPackage.price)}</p>
+          <button id="add-selected-package" class="button" type="button">Добавить в корзину</button>
+        </div>
+      </aside>
+    </div>
+    ${cartSummary()}
+  ` : detail.informational ? `
     <div class="variant-showcase package-information">
       ${carouselMarkup(detail.gallery, detail.heading)}
       <aside class="selected-variant panel">
@@ -516,7 +531,21 @@ function renderPackage() {
     `,
   });
 
-  if (detail.informational) bindCarousels();
+  qs("#add-selected-package")?.addEventListener("click", () => {
+    const added = addToCart({
+      id: selectedPackage.id,
+      name: selectedPackage.name,
+      price: selectedPackage.price,
+      includes: selectedPackage.includes,
+      image: selectedPackage.image,
+      packageId: selectedPackage.id,
+    });
+    if (!added) return;
+    renderPackage();
+    mountFloatingCart();
+    setNotice("Услуга добавлена в корзину.");
+  });
+  if (detail.informational || detail.directOrder) bindCarousels();
 
 }
 
