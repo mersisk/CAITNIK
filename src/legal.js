@@ -19,11 +19,11 @@ function operatorDetails() {
   `;
 }
 
-export function renderPrivacyPolicy() {
+export function renderPrivacyPolicy(returnHref = "#/request") {
   return `
     <section class="section legal-page" aria-labelledby="privacy-title">
       <div class="container legal-page__container">
-        <a class="back-link" href="/#/">← Вернуться на сайт</a>
+        <a class="back-link" href="${returnHref}">← Вернуться к заявке</a>
         <p class="eyebrow">Документы</p>
         <h1 id="privacy-title">Политика обработки персональных данных</h1>
         <p class="legal-page__date">Дата вступления в силу: ${effectiveDate}</p>
@@ -69,7 +69,7 @@ export function renderPrivacyPolicy() {
 
           <section>
             <h2>7. LocalStorage</h2>
-            <p>Корзина и черновик формы могут временно сохраняться в localStorage браузера пользователя. Эти сведения находятся на устройстве пользователя и используются для сохранения состояния формы и корзины. Пользователь может удалить их через настройки браузера.</p>
+            <p>Корзина может сохраняться в localStorage, а черновик формы — временно в sessionStorage браузера пользователя. Эти сведения находятся на устройстве пользователя и используются для сохранения состояния формы и корзины. Черновик удаляется после успешной отправки заявки или закрытия вкладки; пользователь также может удалить сведения через настройки браузера.</p>
           </section>
 
           <section>
@@ -88,11 +88,11 @@ export function renderPrivacyPolicy() {
   `;
 }
 
-export function renderPersonalDataConsent() {
+export function renderPersonalDataConsent(returnHref = "#/request") {
   return `
     <section class="section legal-page" aria-labelledby="consent-title">
       <div class="container legal-page__container">
-        <a class="back-link" href="/#/">← Вернуться на сайт</a>
+        <a class="back-link" href="${returnHref}">← Вернуться к заявке</a>
         <p class="eyebrow">Документы</p>
         <h1 id="consent-title">Согласие на обработку персональных данных</h1>
         <p class="legal-page__date">Дата вступления в силу: ${effectiveDate}</p>
@@ -119,7 +119,7 @@ export function renderPersonalDataConsent() {
           <section>
             <h2>4. Хранение и передача уведомления</h2>
             <p>Первичная запись заявки сохраняется в PostgreSQL на российском VDS. После сохранения содержание заявки передаётся через Telegram Bot API в закрытую группу оператора для уведомления о новом обращении.</p>
-            <p>Корзина и черновик формы могут временно находиться в localStorage браузера пользователя. Данные не предназначены для публикации или распространения неопределённому кругу лиц.</p>
+            <p>Корзина может находиться в localStorage, а черновик формы — временно в sessionStorage браузера пользователя. Данные не предназначены для публикации или распространения неопределённому кругу лиц.</p>
           </section>
 
           <section>

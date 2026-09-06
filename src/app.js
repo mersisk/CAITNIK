@@ -17,6 +17,7 @@ import { renderStyleguide } from "./styleguide.js";
 import { renderPersonalDataConsent, renderPrivacyPolicy } from "./legal.js";
 
 const CART_KEY = "art_deco_cart_v1";
+const REQUEST_DRAFT_KEY = "art_deco_request_draft_v1";
 
 function readCart() {
   try {
@@ -237,10 +238,11 @@ function renderMissingPage(title, message) {
 
 function renderLegalPage(type) {
   const privacy = type === "privacy";
+  const returnHref = selectedParam("return") === "custom" ? "#/request?type=custom" : "#/request";
   renderShell({
     title: `${privacy ? "Политика обработки персональных данных" : "Согласие на обработку персональных данных"} — ${project.name}`,
     nav: nav(""),
-    content: privacy ? renderPrivacyPolicy() : renderPersonalDataConsent(),
+    content: privacy ? renderPrivacyPolicy(returnHref) : renderPersonalDataConsent(returnHref),
   });
 }
 
@@ -687,7 +689,7 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
             <div class="consent-field">
               <label class="consent-control" for="lead-consent">
                 <input id="lead-consent" name="consent" type="checkbox" value="true" aria-describedby="consent-error" required>
-                <span>Я даю <a href="/personal-data-consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и ознакомлен(а) с <a href="/privacy" target="_blank" rel="noopener">Политикой обработки персональных данных</a>.</span>
+                <span>Я даю <a href="#/personal-data-consent?return=${customRequest ? "custom" : "catalog"}">согласие на обработку персональных данных</a> и ознакомлен(а) с <a href="#/privacy?return=${customRequest ? "custom" : "catalog"}">Политикой обработки персональных данных</a>.</span>
               </label>
               <span id="consent-error" class="field-error field-error--inline" hidden></span>
             </div>
@@ -705,6 +707,37 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
   if (showSuccess) qs("#success-modal-close")?.focus();
 
   const form = qs("#lead-form");
+  const orderType = customRequest ? "custom" : "catalog";
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(REQUEST_DRAFT_KEY) || "null");
+    if (draft?.orderType === orderType) {
+      for (const name of ["name", "contact", "eventDate", "city", "venue", "messenger", "details"]) {
+        const field = form.elements.namedItem(name);
+        if (field && typeof draft[name] === "string") field.value = draft[name];
+      }
+      form.elements.namedItem("consent").checked = draft.consent === true;
+    }
+  } catch {
+    // Продолжаем без черновика, если хранилище браузера недоступно.
+  }
+
+  const saveRequestDraft = () => {
+    try {
+      sessionStorage.setItem(REQUEST_DRAFT_KEY, JSON.stringify({
+        orderType,
+        name: form.elements.namedItem("name").value,
+        contact: form.elements.namedItem("contact").value,
+        eventDate: form.elements.namedItem("eventDate").value,
+        city: form.elements.namedItem("city").value,
+        venue: form.elements.namedItem("venue").value,
+        messenger: form.elements.namedItem("messenger").value,
+        details: form.elements.namedItem("details").value,
+        consent: form.elements.namedItem("consent").checked,
+      }));
+    } catch {
+      // Заявка остаётся в форме, даже если хранилище браузера недоступно.
+    }
+  };
   const dateField = qs('[name="eventDate"]', form);
   const now = new Date();
   const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -715,7 +748,10 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
     const fieldError = qs(`#${field.name}-error`, form);
     if (fieldError) { fieldError.textContent = ""; fieldError.hidden = true; }
   };
-  qsa("input, select, textarea", form).forEach((field) => field.addEventListener(field.tagName === "SELECT" ? "change" : "input", () => clearFieldError(field)));
+  qsa("input, select, textarea", form).forEach((field) => field.addEventListener(field.tagName === "SELECT" || field.type === "checkbox" ? "change" : "input", () => {
+    clearFieldError(field);
+    saveRequestDraft();
+  }));
 
   let submitting = false;
   form.addEventListener("submit", async (event) => {
@@ -725,7 +761,6 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
     const details = String(data.get("details") || "").trim();
     const fullName = String(data.get("name") || "").trim();
     const { firstName, lastName } = splitFullName(fullName);
-    const orderType = customRequest ? "custom" : "catalog";
     const payload = {
       first_name: firstName,
       last_name: lastName,
@@ -784,6 +819,7 @@ function renderRequest(showSuccess = false, forcedOrderType = "") {
         throw new Error(serverMessage || "Сервер не принял заявку.");
       }
       clearCart();
+      sessionStorage.removeItem(REQUEST_DRAFT_KEY);
       renderRequest(true, orderType);
     } catch (error) {
       summary.textContent = `${error instanceof Error ? error.message : "Не удалось отправить заявку."} Данные и корзина сохранены — попробуйте ещё раз.`;
