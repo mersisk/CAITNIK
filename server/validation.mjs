@@ -1,7 +1,7 @@
 import { getCatalogItem } from "./catalog.mjs";
 
 const ORDER_TYPES = new Set(["catalog", "custom"]);
-const MESSENGERS = new Set(["Telegram", "WhatsApp"]);
+const MESSENGERS = new Set(["Telegram", "WhatsApp", "MAX"]);
 
 function todayInVladivostok() {
   const parts = new Intl.DateTimeFormat("en", {

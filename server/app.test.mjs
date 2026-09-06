@@ -180,6 +180,19 @@ test("custom: принимает обязательную идею с пусто
   assert.deepEqual(JSON.parse(api.calls[0].values[10]), []);
 });
 
+test("принимает MAX как удобный мессенджер клиента", async () => {
+  const api = await startApi();
+  const application = validCatalogApplication();
+  application.messenger = "MAX";
+  const response = await fetch(`${api.url}/api/applications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(application),
+  });
+  assert.equal(response.status, 201);
+  assert.equal(api.calls[0].values[6], "MAX");
+});
+
 test("не принимает заявку без явно подтверждённого consent=true", async () => {
   for (const consent of [undefined, false, "true", 1]) {
     const api = await startApi();
