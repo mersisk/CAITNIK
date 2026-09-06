@@ -157,14 +157,14 @@ curl -i -X POST http://127.0.0.1:3000/api/applications \
     "city":"Владивосток",
     "venue":"Банкетный зал",
     "messenger":"Telegram",
-    "event_type":"Романтический вечер",
+    "event_type":"Свадьба",
     "order_type":"catalog",
     "wishes":"Тёплый свет",
     "consent":true,
     "cart_items":[{
-      "id":"romantic-table-candles",
-      "name":"Вечер при свечах",
-      "price":"от 5 560 ₽",
+      "id":"wedding-photo-25000",
+      "name":"Фотозона от 25 000 ₽",
+      "price":"от 25 000 ₽",
       "quantity":1
     }]
   }'

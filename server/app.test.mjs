@@ -40,10 +40,10 @@ function validCatalogApplication() {
     city: "Владивосток",
     venue: "Банкетный зал",
     messenger: "Telegram",
-    event_type: "Романтический вечер",
+    event_type: "Свадьба",
     order_type: "catalog",
     wishes: "Тёплый свет",
-    cart_items: [{ id: "romantic-table-candles", name: "Подменённое имя", price: "1 ₽", quantity: 1 }],
+    cart_items: [{ id: "wedding-photo-25000", name: "Подменённое имя", price: "1 ₽", quantity: 1 }],
     consent: true,
   };
 }
@@ -60,7 +60,7 @@ test("catalog: сохраняет канонические позиции пар
   assert.equal(api.calls.length, 1);
   assert.match(api.calls[0].sql, /VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11::jsonb\)/);
   const savedCart = JSON.parse(api.calls[0].values[10]);
-  assert.deepEqual(savedCart, [{ id: "romantic-table-candles", name: "Вечер при свечах", price: "от 5 560 ₽", quantity: 1 }]);
+  assert.deepEqual(savedCart, [{ id: "wedding-photo-25000", name: "Фотозона от 25 000 ₽", price: "от 25 000 ₽", quantity: 1 }]);
   assert.equal(api.calls[0].values[2], "+79991234567");
   assert.equal(api.telegramCalls[0].id, 123);
 });
@@ -155,10 +155,10 @@ test("проверяет формат и давность даты", async () =>
   }
 });
 
-test("не принимает неизвестную позицию каталога", async () => {
+test("не принимает удалённую позицию романтического вечера", async () => {
   const api = await startApi();
   const application = validCatalogApplication();
-  application.cart_items = [{ id: "unknown", name: "Неизвестно", price: "0 ₽", quantity: 1 }];
+  application.cart_items = [{ id: "romantic-table-candles", name: "Вечер при свечах", price: "от 5 560 ₽", quantity: 1 }];
   const response = await fetch(`${api.url}/api/applications`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
