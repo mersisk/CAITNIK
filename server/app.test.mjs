@@ -103,6 +103,27 @@ test("catalog: сохраняет самостоятельную услугу г
   }]);
 });
 
+test("catalog: сохраняет одиночные услуги юбилея, выписки и выпускного", async () => {
+  const services = [
+    ["anniversary-decoration", "Юбилей", "Оформление юбилея", "от 25 000 ₽"],
+    ["maternity-decoration", "Выписка из роддома", "Оформление выписки из роддома", "от 25 000 ₽"],
+    ["graduation-decoration", "Выпускной", "Оформление выпускного", "от 30 000 ₽"],
+  ];
+  for (const [id, eventType, name, price] of services) {
+    const api = await startApi();
+    const application = validCatalogApplication();
+    application.event_type = eventType;
+    application.cart_items = [{ id, name: "Подменённое название", price: "1 ₽", quantity: 1 }];
+    const response = await fetch(`${api.url}/api/applications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(application),
+    });
+    assert.equal(response.status, 201);
+    assert.deepEqual(JSON.parse(api.calls[0].values[10]), [{ id, name, price, quantity: 1 }]);
+  }
+});
+
 test("custom: требует wishes и пустую корзину", async () => {
   const api = await startApi();
   const application = validCatalogApplication();

@@ -153,40 +153,18 @@ const catalog = [
     variants: [],
   },
   {
-    id: "anniversary-photo", eventId: "anniversary", name: "Фотозона на юбилей", price: "от 20 000 ₽",
-    includes: "Фон, дата или имя, декоративные акценты и монтаж.", tone: "gold",
-    variants: [
-      variant("anniversary-photo-panels", "Фотозона с датой", "от 20 000 ₽", "Панели, крупная дата, надпись и небольшой декор.", "gold"),
-      variant("anniversary-photo-fabric", "Фотозона с тканью", "от 25 000 ₽", "Драпировка, свет, имя или дата и цветочные акценты.", "rose"),
-      variant("anniversary-photo-sequin", "Фотозона с пайетками", "от 30 000 ₽", "Пайетки, неоновая надпись, свет и тумбы.", "lilac"),
-    ],
+    id: "anniversary-decoration", eventId: "anniversary", name: "Оформление юбилея", price: "от 25 000 ₽",
+    includes: "Оформление праздничного пространства в выбранной стилистике с декором для памятных фотографий.", tone: "gold",
+    directOrder: true,
+    gallery: placeholderGallery("Оформление юбилея", "gold", 4),
+    variants: [],
   },
   {
-    id: "anniversary-banquet", eventId: "anniversary", name: "Оформление юбилея", price: "от 32 000 ₽",
-    includes: "Фотозона и декор основных зон банкета.", tone: "gold",
-    variants: [
-      variant("anniversary-banquet-family", "Семейный вечер", "от 32 000 ₽", "Фотозона, главный стол, свечи и небольшие композиции.", "gold"),
-      variant("anniversary-banquet-hall", "Праздничный банкет", "от 50 000 ₽", "Фотозона, welcome-зона и декор гостевых столов.", "rose"),
-      variant("anniversary-banquet-full", "Юбилей под ключ", "от 80 000 ₽", "Единая концепция и оформление всех основных зон площадки.", "sage"),
-    ],
-  },
-  {
-    id: "graduation-photo", eventId: "graduation", name: "Фотозона на выпускной", price: "от 20 000 ₽",
-    includes: "Памятный фон с годом выпуска, названием класса или группы.", tone: "blue",
-    variants: [
-      variant("graduation-photo-school", "Школьный выпускной", "от 20 000 ₽", "Панели, год выпуска, название школы и монтаж.", "blue"),
-      variant("graduation-photo-sequin", "Фотозона с пайетками", "от 25 000 ₽", "Пайетки, крупные цифры, неон и свет.", "gold"),
-      variant("graduation-photo-fabric", "Фотозона с драпировкой", "от 30 000 ₽", "Тканевый фон, год выпуска и декоративные композиции.", "lilac"),
-    ],
-  },
-  {
-    id: "graduation-hall", eventId: "graduation", name: "Оформление выпускного", price: "от 32 000 ₽",
-    includes: "Фотозона и оформление основных зон зала.", tone: "blue",
-    variants: [
-      variant("graduation-hall-start", "Выпускной Start", "от 32 000 ₽", "Фотозона, входная зона и декоративные цифры.", "blue"),
-      variant("graduation-hall-plus", "Выпускной Plus", "от 50 000 ₽", "Фотозона, сцена или главный стол и декор зала.", "lilac"),
-      variant("graduation-hall-full", "Выпускной под ключ", "от 75 000 ₽", "Общая концепция, фотозона, сцена, вход и гостевые столы.", "gold"),
-    ],
+    id: "graduation-decoration", eventId: "graduation", name: "Оформление выпускного", price: "от 30 000 ₽",
+    includes: "Оформление выпускного с памятной фотозоной, годом выпуска и декоративными деталями.", tone: "blue",
+    directOrder: true,
+    gallery: placeholderGallery("Оформление выпускного", "blue", 4),
+    variants: [],
   },
   {
     id: "first-birthday-balloons", eventId: "first-birthday", name: "Шары на годовасие", price: "от 5 390 ₽",
@@ -207,22 +185,11 @@ const catalog = [
     ],
   },
   {
-    id: "maternity-balloons", eventId: "maternity", name: "Шары на выписку", price: "от 3 985 ₽",
-    includes: "Готовые композиции для встречи малыша дома или у роддома.", tone: "rose",
-    variants: [
-      variant("maternity-son", "Фонтан «Ура, сын!»", "от 3 985 ₽", "Фольгированные и латексные шары со звездой и фигурой малыша.", "blue"),
-      variant("maternity-box", "Коробка с шарами", "от 4 100 ₽", "Большая коробка, шары нужной палитры и надпись.", "rose"),
-      variant("maternity-name", "Именная композиция", "от 7 450 ₽", "Шар с именем малыша, звёзды и несколько связок шаров.", "gold"),
-    ],
-  },
-  {
-    id: "maternity-welcome", eventId: "maternity", name: "Оформление встречи малыша", price: "от 10 000 ₽",
-    includes: "Небольшая фотозона и декор места встречи.", tone: "rose",
-    variants: [
-      variant("maternity-welcome-home", "Добро пожаловать домой", "от 10 000 ₽", "Гирлянда из шаров, имя малыша и зона для семейных фотографий.", "rose"),
-      variant("maternity-welcome-photo", "Первая фотозона", "от 15 000 ₽", "Фон, именная надпись, шары и декоративные фигуры.", "blue"),
-      variant("maternity-welcome-full", "Встреча малыша Plus", "от 20 000 ₽", "Фотозона, входная композиция и декор комнаты.", "gold"),
-    ],
+    id: "maternity-decoration", eventId: "maternity", name: "Оформление выписки из роддома", price: "от 25 000 ₽",
+    includes: "Праздничное оформление встречи малыша с воздушными шарами, именной надписью и зоной для семейных фотографий.", tone: "rose",
+    directOrder: true,
+    gallery: placeholderGallery("Оформление выписки из роддома", "rose", 4),
+    variants: [],
   },
   {
     id: "corporate-photo", eventId: "corporate", name: "Брендированная фотозона", price: "от 20 000 ₽",
