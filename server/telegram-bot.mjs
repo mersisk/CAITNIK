@@ -4,6 +4,38 @@ import { SocksProxyAgent } from "socks-proxy-agent";
 const TELEGRAM_TEXT_LIMIT = 4096;
 const TELEGRAM_RESPONSE_LIMIT = 64 * 1024;
 const TELEGRAM_TIMEOUT_MS = 5000;
+const SAFE_TELEGRAM_ERROR_CODES = new Set([
+  "ABORT_ERR",
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "ENOTFOUND",
+  "ETIMEDOUT",
+  "TELEGRAM_API_REJECTED",
+  "TELEGRAM_HTTP_ERROR",
+  "TELEGRAM_NETWORK_ERROR",
+  "TELEGRAM_PROXY_CONFIG",
+  "TELEGRAM_TIMEOUT",
+]);
+
+function telegramError(message, code) {
+  return Object.assign(new Error(message), { code });
+}
+
+export function safeTelegramErrorDetails(error) {
+  const incomingCode = typeof error?.code === "string" ? error.code : "";
+  const code = SAFE_TELEGRAM_ERROR_CODES.has(incomingCode) ? incomingCode : "TELEGRAM_ERROR";
+  const incomingMessage = error instanceof Error ? error.message : "";
+  const messageIsSafe = [
+    "Telegram HTTPS request failed",
+    "Telegram request timed out",
+    "Telegram SOCKS5 proxy настроен не полностью",
+    "Некорректный порт Telegram SOCKS5 proxy",
+    "Telegram Bot API отклонил сообщение",
+  ].includes(incomingMessage) || /^Telegram Bot API вернул HTTP \d{3}$/.test(incomingMessage);
+  return { code, message: messageIsSafe ? incomingMessage : "Telegram request failed" };
+}
 
 function formatItems(items) {
   return items.map((item) => `- ${item.name} — ${item.price}${item.quantity > 1 ? ` × ${item.quantity}` : ""}`).join("\n");
@@ -35,9 +67,9 @@ function createTelegramProxyAgent(agentFactory = (proxyUrl) => new SocksProxyAge
   const hasAnyProxySetting = Boolean(host || port || username || password);
 
   if (!hasAnyProxySetting) return undefined;
-  if (!host || !port) throw new Error("Telegram SOCKS5 proxy настроен не полностью");
+  if (!host || !port) throw telegramError("Telegram SOCKS5 proxy настроен не полностью", "TELEGRAM_PROXY_CONFIG");
   if (!/^\d+$/.test(port) || Number(port) < 1 || Number(port) > 65535) {
-    throw new Error("Некорректный порт Telegram SOCKS5 proxy");
+    throw telegramError("Некорректный порт Telegram SOCKS5 proxy", "TELEGRAM_PROXY_CONFIG");
   }
 
   const proxyUrl = new URL("socks5h://localhost");
@@ -76,6 +108,9 @@ function requestJson(url, { body, agent, requestImpl = https.request }) {
         resolve({ ok: response.statusCode >= 200 && response.statusCode < 300, status: response.statusCode, data });
       });
     });
+    request.setTimeout?.(TELEGRAM_TIMEOUT_MS, () => {
+      request.destroy(telegramError("Telegram request timed out", "TELEGRAM_TIMEOUT"));
+    });
     request.on("error", reject);
     request.end(body);
   });
@@ -94,13 +129,22 @@ export async function sendApplicationToTelegram(application, {
       chat_id: chatId,
       text: formatApplicationForTelegram(application),
   });
-  const response = await requestJson(`https://api.telegram.org/bot${token}/sendMessage`, {
-    body,
-    agent,
-    requestImpl,
-  });
+  let response;
+  try {
+    response = await requestJson(`https://api.telegram.org/bot${token}/sendMessage`, {
+      body,
+      agent,
+      requestImpl,
+    });
+  } catch (error) {
+    if (error?.code === "TELEGRAM_TIMEOUT" || error?.code === "ABORT_ERR") {
+      throw telegramError("Telegram request timed out", "TELEGRAM_TIMEOUT");
+    }
+    const code = SAFE_TELEGRAM_ERROR_CODES.has(error?.code) ? error.code : "TELEGRAM_NETWORK_ERROR";
+    throw telegramError("Telegram HTTPS request failed", code);
+  }
 
-  if (!response.ok) throw new Error(`Telegram Bot API вернул HTTP ${response.status}`);
-  if (!response.data?.ok) throw new Error("Telegram Bot API отклонил сообщение");
+  if (!response.ok) throw telegramError(`Telegram Bot API вернул HTTP ${response.status}`, "TELEGRAM_HTTP_ERROR");
+  if (!response.data?.ok) throw telegramError("Telegram Bot API отклонил сообщение", "TELEGRAM_API_REJECTED");
   return { sent: true, skipped: false };
 }

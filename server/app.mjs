@@ -2,7 +2,7 @@ import cors from "cors";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import { createApplication } from "./applications.mjs";
-import { sendApplicationToTelegram } from "./telegram-bot.mjs";
+import { safeTelegramErrorDetails, sendApplicationToTelegram } from "./telegram-bot.mjs";
 import { validateApplication } from "./validation.mjs";
 
 export function isAllowedOrigin(origin, siteOrigin = process.env.SITE_ORIGIN) {
@@ -71,9 +71,10 @@ export function createApp({
         const telegramResult = await sendToTelegram(application);
         if (telegramResult?.skipped) logger.warn("Telegram notification skipped: bot is not configured", { applicationId: id });
       } catch (error) {
+        const telegramError = safeTelegramErrorDetails(error);
         logger.error("Telegram notification failed", {
           applicationId: id,
-          code: error?.code || "unknown",
+          ...telegramError,
         });
       }
       return response.status(201).json({ success: true, id });

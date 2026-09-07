@@ -32,5 +32,5 @@
 - Не очищай форму и корзину при ошибке API. Корзину можно очистить только после ответа `{ success: true }`.
 - Форма отправляется только при `consent: true`; ссылки на документы ведут на `/personal-data-consent` и `/privacy`, checkbox по умолчанию пуст.
 - Backend сверяет позиции с `src/project.js`, подключает PostgreSQL только через `DATABASE_URL` и вызывает Telegram после успешного `INSERT`. Секреты не помещай во frontend и логи.
-- SOCKS5-прокси применяется только в `server/telegram-bot.mjs`; используй `socks5h` и переменные `TELEGRAM_PROXY_*`, не направляй через него PostgreSQL или остальной backend.
+- SOCKS5-прокси применяется только в `server/telegram-bot.mjs`; передавай `SocksProxyAgent` как `agent` в `node:https`, не как `dispatcher` в `fetch`. Используй `socks5h`, таймаут и переменные `TELEGRAM_PROXY_*`; не направляй через прокси PostgreSQL или остальной backend.
 - Ссылки Instagram и Telegram редактируются в `project.socials`. Пустая ссылка остаётся неактивной; не подставляй вымышленные адреса.

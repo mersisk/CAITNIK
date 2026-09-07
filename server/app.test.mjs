@@ -336,4 +336,6 @@ test("сбой Telegram не отменяет сохранённую заявк�
   assert.equal(JSON.stringify(logEntries).includes(secretToken), false);
   assert.equal(JSON.stringify(logEntries).includes(secretProxyPassword), false);
   assert.match(JSON.stringify(logEntries), /Telegram notification failed/);
+  assert.match(JSON.stringify(logEntries), /Telegram request failed/);
+  assert.match(JSON.stringify(logEntries), /TELEGRAM_ERROR/);
 });

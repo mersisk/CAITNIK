@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import test from "node:test";
-import { formatApplicationForTelegram, sendApplicationToTelegram } from "./telegram-bot.mjs";
+import { formatApplicationForTelegram, safeTelegramErrorDetails, sendApplicationToTelegram } from "./telegram-bot.mjs";
 
 const application = {
   id: 123,
@@ -47,6 +47,8 @@ async function withTelegramEnv(values, callback) {
 function mockRequest({ status = 200, responseBody = { ok: true } } = {}, capture = {}) {
   return (url, options, callback) => {
     const request = new EventEmitter();
+    request.setTimeout = (timeout, onTimeout) => Object.assign(capture, { timeout, onTimeout });
+    request.destroy = (error) => queueMicrotask(() => request.emit("error", error));
     request.end = (body) => {
       Object.assign(capture, { url: String(url), options, body });
       queueMicrotask(() => {
@@ -102,6 +104,9 @@ test("успешно отправляет JSON через официальный
   assert.equal(request.options.method, "POST");
   assert.equal(request.options.headers["Content-Type"], "application/json");
   assert.equal(request.options.agent, undefined);
+  assert.equal("dispatcher" in request.options, false);
+  assert.equal(request.timeout, 5000);
+  assert.equal(request.options.signal instanceof AbortSignal, true);
   const body = JSON.parse(request.body);
   assert.equal(body.chat_id, "-100456");
   assert.match(body.text, /Новая заявка №123/);
@@ -128,7 +133,23 @@ test("использует socks5h proxy только для HTTPS-запрос�
 
   assert.equal(request.url, "https://api.telegram.org/bottest-token/sendMessage");
   assert.equal(request.options.agent, agent);
+  assert.equal("dispatcher" in request.options, false);
   assert.equal(proxyUrl, "socks5h://proxy-user:proxy-password@proxy.example:1080");
+});
+
+test("прерывает зависший Telegram-запрос по таймауту", async () => {
+  await assert.rejects(
+    withTelegramEnv({ token: "test-token", chatId: "456" }, () => sendApplicationToTelegram(application, {
+      requestImpl(_url, _options, _callback) {
+        const request = new EventEmitter();
+        request.setTimeout = (_timeout, onTimeout) => queueMicrotask(onTimeout);
+        request.destroy = (error) => queueMicrotask(() => request.emit("error", error));
+        request.end = () => {};
+        return request;
+      },
+    })),
+    (error) => error.code === "TELEGRAM_TIMEOUT" && error.message === "Telegram request timed out",
+  );
 });
 
 test("не использует proxy при полностью пустых proxy-настройках", async () => {
@@ -165,4 +186,10 @@ test("ошибка Telegram не содержит token в сообщении и
       return true;
     },
   );
+});
+
+test("подготавливает безопасные message и code для серверного лога", () => {
+  const details = safeTelegramErrorDetails(Object.assign(new Error("secret token and proxy password"), { code: "SECRET_CODE" }));
+  assert.deepEqual(details, { code: "TELEGRAM_ERROR", message: "Telegram request failed" });
+  assert.equal(JSON.stringify(details).includes("secret"), false);
 });
